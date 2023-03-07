@@ -2919,6 +2919,15 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
+#ifdef CP_PHASE_NOFILE
+  ostringstream recomfile{};
+  ostringstream monitorfile{};
+  ostringstream samplefile{};
+  ostringstream pairsfile{};
+
+  ostringstream signiffile{};
+  ostringstream hotfile{};
+#else
   ofstream recomfile;
   ofstream monitorfile; 
   ofstream samplefile; // sample from posterior
@@ -2980,6 +2989,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     samplefile.open(samplefilename.c_str()); 
     assure ( samplefile, samplefilename);
   }
+#endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop,Nind); // start with list of all haplotypes in current guess
@@ -3716,6 +3726,13 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //     }
   }
 
+  phaseData->recom   += recomfile.str();
+  phaseData->monitor += monitorfile.str();
+  phaseData->sample  += samplefile.str();
+  phaseData->pairs   += pairsfile.str();
+
+  phaseData->signif  += signiffile.str();
+  phaseData->hot     += hotfile.str();
 
   return meanloglik;
 
@@ -3766,6 +3783,15 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
+#ifdef CP_PHASE_NOFILE
+  ostringstream recomfile{};
+  ostringstream monitorfile{};
+  ostringstream samplefile{};
+  ostringstream pairsfile{};
+
+  ostringstream signiffile{};
+  ostringstream hotfile{};
+#else
   ofstream recomfile;
   ofstream monitorfile; 
   ofstream samplefile; // sample from posterior
@@ -3828,6 +3854,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
     samplefile.open(samplefilename.c_str()); 
     assure ( samplefile, samplefilename);
   }
+#endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop, Nind); // start with list of all haplotypes in current guess
@@ -4379,6 +4406,13 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 //     }
   }
 
+  phaseData->recom   += recomfile.str();
+  phaseData->monitor += monitorfile.str();
+  phaseData->sample  += samplefile.str();
+  phaseData->pairs   += pairsfile.str();
+
+  phaseData->signif  += signiffile.str();
+  phaseData->hot     += hotfile.str();
 
   return meanloglik;
 
@@ -4436,6 +4470,15 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
+#ifdef CP_PHASE_NOFILE
+  ostringstream recomfile{};
+  ostringstream monitorfile{};
+  ostringstream samplefile{};
+  ostringstream pairsfile{};
+
+  ostringstream signiffile{};
+  ostringstream hotfile{};
+#else
   ofstream recomfile;
   ofstream monitorfile; 
   ofstream samplefile; // sample from posterior
@@ -4497,6 +4540,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     samplefile.open(samplefilename.c_str()); 
     assure ( samplefile, samplefilename);
   }
+#endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop, Nind); // start with list of all haplotypes in current guess
@@ -4942,6 +4986,13 @@ vector<Summary> summary = haplist.ProduceSummary(index,phaseprobs,0,get_nloci(),
 TransferCounts(summary);
 }
 
+  phaseData->recom   += recomfile.str();
+  phaseData->monitor += monitorfile.str();
+  phaseData->sample  += samplefile.str();
+  phaseData->pairs   += pairsfile.str();
+
+  phaseData->signif  += signiffile.str();
+  phaseData->hot     += hotfile.str();
 
 return meanloglik;
 

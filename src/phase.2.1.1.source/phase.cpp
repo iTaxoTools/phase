@@ -83,7 +83,7 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
 
 #ifdef CP_PHASE_NOFILE
 #include <sstream>
-#include "phase_data.h"
+PhaseData* phaseData = NULL;
 int phase(PhaseData& data, int argc, char* argv[])
 #else
 int phase(int argc, char* argv[])
@@ -93,11 +93,16 @@ int phase(int argc, char* argv[])
 int main ( int argc, char** argv)
 #endif
 {
+#ifdef CP_PHASE_DISABLE_COUT
+    ostringstream coutStream{};
+    streambuf* coutBuf = cout.rdbuf(coutStream.rdbuf());
+#endif
+#ifdef CP_PHASE_DISABLE_CERR
+    ostringstream cerrStream{};
+    streambuf* cerrBuf = cerr.rdbuf(cerrStream.rdbuf());
+#endif
 #ifdef CP_PHASE_NOFILE
-    ostringstream outStream{};
-    streambuf* coutBuf = cout.rdbuf(outStream.rdbuf());
-    ostringstream errStream{};
-    streambuf* cerrBuf = cerr.rdbuf(errStream.rdbuf());
+	phaseData = &data;
 #endif
 
     // Processing command line options
@@ -113,8 +118,19 @@ int main ( int argc, char** argv)
              Niter, Nthin, Nburn);
     
 #ifdef CP_PHASE_NOFILE
-		istringstream input{data.input};
-		ostringstream output{};
+	istringstream input{data.input};
+	ostringstream output{};
+
+	ostringstream freqfile{};
+
+	ostringstream monitorfile{};
+
+	ostringstream hbgfile{};
+	ostringstream probfile{};
+
+	istringstream ifstr_known{data.known};
+	istringstream ifstr_init{data.init};
+	istringstream deltaFile{data.delta};
 #else
     // Read in data file
     ifstream input (filenames["input"].c_str());
@@ -122,7 +138,6 @@ int main ( int argc, char** argv)
     // Open outputfile
     ofstream output (filenames["output"].c_str());
     assure ( output, filenames["output"] );
-#endif
     
     
     string freqfilename = filenames["output"]+"_freqs";
@@ -142,6 +157,7 @@ int main ( int argc, char** argv)
     ifstream ifstr_known;
     ifstream ifstr_init;
     ifstream deltaFile;
+#endif
     
     for (int dataset = 0; dataset < cmdoptions["Nskip"]; 
          dataset++) {
@@ -174,14 +190,17 @@ int main ( int argc, char** argv)
 	    for(int r=0; r<vecDelta.size(); r++)
 	      vecDelta[r] = 1;
 	  } else {
+#ifndef CP_PHASE_NOFILE
 	    deltaFile.open (filenames["deltaFile"].c_str());
 	    assure ( deltaFile, filenames["deltaFile"] );
+#endif
 	    for(int r=0; r<vecDelta.size(); r++)
 	      deltaFile >> vecDelta[r];
 	  }
 	}
 
        	
+#ifndef CP_PHASE_NOFILE
 	if(cmdoptions["knowninfo"] == 1){
 	  ifstr_known.open ( filenames["knownfile"].c_str()); 
 	  assure (ifstr_known, filenames["knownfile"]);
@@ -192,14 +211,17 @@ int main ( int argc, char** argv)
 	  ifstr_init.open ( filenames["initfile"].c_str());
 	  assure (ifstr_init, filenames["initfile"]);
 	}
+#endif
 
 	allpop.initialize ( ifstr_known, ifstr_init, cmdoptions["knowninfo"], 
 			    cmdoptions["initmethod"], cmdoptions["theta"], vecDelta, cmdoptions["format"]);
 	
+#ifndef CP_PHASE_NOFILE
 	if(cmdoptions["knowninfo"] == 1)
 	  ifstr_known.close();
 	if(cmdoptions["initmethod"] == 1 )
 	  ifstr_init.close();
+#endif
 
       	
 //  if ( cmdoptions["startinfo"] == 2 ||
@@ -310,8 +332,10 @@ int main ( int argc, char** argv)
 	
 	if(cmdoptions["testing"] ==1){
 
+#ifndef CP_PHASE_NOFILE
 	  hbgfile.open(hbgfilename.c_str(),ios::app);
 	  probfile.open(probfilename.c_str(),ios::app);
+#endif
 	  
 	  //allpop.RestoreSavedState();
 	  //allpop.output_all_haps (output  ,true , false, false, d_cmdoptions["phase_threshold"]);
@@ -324,8 +348,10 @@ int main ( int argc, char** argv)
 	  // ie current values of haps.
 	  allpop.output_all_haps( hbgfile, true , false, false, true, d_cmdoptions["phase_threshold"]);
 	  
+#ifndef CP_PHASE_NOFILE
 	  hbgfile.close();
 	  probfile.close();
+#endif
 
 
 	}
@@ -354,7 +380,9 @@ int main ( int argc, char** argv)
 	    output << endl;
 
 	    output << "BEGIN OUTFILE_LIST" << endl;
+#ifndef CP_PHASE_NOFILE
 	    output << freqfilename << " : haplotype frequency estimates" << endl;
+#endif
 	    output << filenames["output"] + "_pairs : most likely haplotype pairs for each individual" << endl;
 	    if(cmdoptions["method"] == 'R' || cmdoptions["method"] == 'Q')
 	      output << filenames["output"] + "_recom : estimates of recombination parameters" << endl;
@@ -363,7 +391,9 @@ int main ( int argc, char** argv)
 	    if(cmdoptions["outputsample"])
 	      output << filenames["output"] + "_sample : sample from posterior distribution of haplotype reconstruction" << endl;
 	    
+#ifndef CP_PHASE_NOFILE
 	    output << monitorfilename << " : file for monitoring convergence" << endl;
+#endif
 	    output << "END OUTFILE_LIST" << endl;
 	    
 	    output << endl;
@@ -390,7 +420,9 @@ int main ( int argc, char** argv)
 // 	    output << endl << endl;
 	    
 	    output << "List of haplotypes found in best reconstruction, with counts." << endl;
+#ifndef CP_PHASE_NOFILE
 	    output << "(See file " << freqfilename << " for haplotype population frequency estimates)" << endl;
+#endif
 	    output << endl;
 	    output << "BEGIN LIST_SUMMARY" << endl;
 	    allpop.OutputHapList(output,0,false);
@@ -446,18 +478,26 @@ int main ( int argc, char** argv)
 
     
     // Close file streams
-#ifndef CP_PHASE_NOFILE
+#ifdef CP_PHASE_NOFILE
+	data.output  += output.str();
+	data.freqs   += freqfile.str();
+	data.monitor += monitorfile.str();
+	data.hbg     += hbgfile.str();
+	data.probs   += probfile.str();
+#else
     input.close();
     output.close();
-#endif
     monitorfile.close();
     freqfile.close();
+#endif
        
 #ifdef CP_PHASE_DISABLE_COUT
     cout.rdbuf(coutBuf);
+	data.cout = coutStream.str();
 #endif
 #ifdef CP_PHASE_DISABLE_CERR
     cerr.rdbuf(cerrBuf);
+	data.cerr = cerrStream.str();
 #endif
     return 0;
 }

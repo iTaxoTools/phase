@@ -23,6 +23,11 @@
 //#include <dmalloc.h>
 //#endif
 
+#ifdef CP_PHASE_NOFILE
+#include "phase_data.h"
+extern PhaseData* phaseData;
+#endif
+
 using namespace::std;
 
 class ClassPop {
