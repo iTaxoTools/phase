@@ -79,8 +79,27 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
   return loglik;
 }
 	  	
+#ifdef CP_PHASE_LIB
+#include <sstream>
+
+#ifdef CP_PHASE_NOFILE
+int phase(istream& input, ostream& output, int argc, char* argv[])
+#else
+int phase(int argc, char* argv[])
+#endif
+
+#else
 int main ( int argc, char** argv)
+#endif
 {
+#ifdef CP_PHASE_DISABLE_COUT
+    ostringstream outStream{};
+    streambuf* coutBuf = cout.rdbuf(outStream.rdbuf());
+#endif
+#ifdef CP_PHASE_DISABLE_CERR
+    ostringstream errStream{};
+    streambuf* cerrBuf = cerr.rdbuf(errStream.rdbuf());
+#endif
 
     // Processing command line options
     // Default options     
@@ -94,12 +113,14 @@ int main ( int argc, char** argv)
     int status = proc_args ( argc, argv, filenames, cmdoptions, d_cmdoptions,
              Niter, Nthin, Nburn);
     
+#ifndef CP_PHASE_NOFILE
     // Read in data file
     ifstream input (filenames["input"].c_str());
     assure ( input, filenames["input"] );
     // Open outputfile
     ofstream output (filenames["output"].c_str());
     assure ( output, filenames["output"] );
+#endif
     
     
     string freqfilename = filenames["output"]+"_freqs";
@@ -423,11 +444,19 @@ int main ( int argc, char** argv)
 
     
     // Close file streams
+#ifndef CP_PHASE_NOFILE
     input.close();
     output.close();
+#endif
     monitorfile.close();
     freqfile.close();
        
+#ifdef CP_PHASE_DISABLE_COUT
+    cout.rdbuf(coutBuf);
+#endif
+#ifdef CP_PHASE_DISABLE_CERR
+    cerr.rdbuf(cerrBuf);
+#endif
     return 0;
 }
 

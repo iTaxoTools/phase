@@ -439,6 +439,7 @@ case 'A':
     exit (1);
   }
 
+#ifndef CP_PHASE_NOFILE
   if ( argc < 3) {
     cerr << "usage is PHASE <filename.inp> <filename.out>"
 	 << "<number of iterations> <thinning interval> <burn-in>"
@@ -447,13 +448,16 @@ case 'A':
   }
   filenames["input"]  = argv[1];
   filenames["output"] = argv[2];
+  argv += 2;
+  argc -= 2;
+#endif
   
+  if ( argc > 1 ) 
+    Niter = atoi( argv[1] );
+  if ( argc > 2 ) 
+    Nthin = atoi( argv[2] );
   if ( argc > 3 ) 
-    Niter = atoi( argv[3] );
-  if ( argc > 4 ) 
-    Nthin = atoi( argv[4] );
-  if ( argc > 5 ) 
-    Nburn = atoi( argv[5] );
+    Nburn = atoi( argv[3] );
   else
     Nburn = Niter;
   
