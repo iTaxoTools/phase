@@ -80,10 +80,11 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
 }
 	  	
 #ifdef CP_PHASE_LIB
-#include <sstream>
 
 #ifdef CP_PHASE_NOFILE
-int phase(istream& input, ostream& output, int argc, char* argv[])
+#include <sstream>
+#include "phase_data.h"
+int phase(PhaseData& data, int argc, char* argv[])
 #else
 int phase(int argc, char* argv[])
 #endif
@@ -92,11 +93,9 @@ int phase(int argc, char* argv[])
 int main ( int argc, char** argv)
 #endif
 {
-#ifdef CP_PHASE_DISABLE_COUT
+#ifdef CP_PHASE_NOFILE
     ostringstream outStream{};
     streambuf* coutBuf = cout.rdbuf(outStream.rdbuf());
-#endif
-#ifdef CP_PHASE_DISABLE_CERR
     ostringstream errStream{};
     streambuf* cerrBuf = cerr.rdbuf(errStream.rdbuf());
 #endif
@@ -113,7 +112,10 @@ int main ( int argc, char** argv)
     int status = proc_args ( argc, argv, filenames, cmdoptions, d_cmdoptions,
              Niter, Nthin, Nburn);
     
-#ifndef CP_PHASE_NOFILE
+#ifdef CP_PHASE_NOFILE
+		istringstream input{data.input};
+		ostringstream output{};
+#else
     // Read in data file
     ifstream input (filenames["input"].c_str());
     assure ( input, filenames["input"] );
