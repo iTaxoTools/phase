@@ -80,9 +80,8 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
 }
 	  	
 #ifdef CP_PHASE_LIB
-
-#ifdef CP_PHASE_NOFILE
 #include <sstream>
+#ifdef CP_PHASE_NOFILE
 PhaseData* phaseData = NULL;
 int phase(PhaseData& data, int argc, char* argv[])
 #else
@@ -491,11 +490,11 @@ int main ( int argc, char** argv)
     freqfile.close();
 #endif
        
-#ifdef CP_PHASE_DISABLE_COUT
+#if defined(CP_PHASE_DISABLE_COUT) && defined(CP_PHASE_NOFILE)
     cout.rdbuf(coutBuf);
 	data.cout = coutStream.str();
 #endif
-#ifdef CP_PHASE_DISABLE_CERR
+#if defined(CP_PHASE_DISABLE_CERR) && defined(CP_PHASE_NOFILE)
     cerr.rdbuf(cerrBuf);
 	data.cerr = cerrStream.str();
 #endif

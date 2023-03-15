@@ -3726,6 +3726,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //     }
   }
 
+#ifdef CP_PHASE_NOFILE
   phaseData->recom   += recomfile.str();
   phaseData->monitor += monitorfile.str();
   phaseData->sample  += samplefile.str();
@@ -3733,6 +3734,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   phaseData->signif  += signiffile.str();
   phaseData->hot     += hotfile.str();
+#endif
 
   return meanloglik;
 
@@ -4406,6 +4408,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 //     }
   }
 
+#ifdef CP_PHASE_NOFILE
   phaseData->recom   += recomfile.str();
   phaseData->monitor += monitorfile.str();
   phaseData->sample  += samplefile.str();
@@ -4413,6 +4416,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
   phaseData->signif  += signiffile.str();
   phaseData->hot     += hotfile.str();
+#endif
 
   return meanloglik;
 
@@ -4986,6 +4990,7 @@ vector<Summary> summary = haplist.ProduceSummary(index,phaseprobs,0,get_nloci(),
 TransferCounts(summary);
 }
 
+#ifdef CP_PHASE_NOFILE
   phaseData->recom   += recomfile.str();
   phaseData->monitor += monitorfile.str();
   phaseData->sample  += samplefile.str();
@@ -4993,6 +4998,7 @@ TransferCounts(summary);
 
   phaseData->signif  += signiffile.str();
   phaseData->hot     += hotfile.str();
+#endif
 
 return meanloglik;
 
