@@ -21,6 +21,10 @@
 #include <algorithm>
 #include <cmath>
 
+#ifdef CP_PHASE_NOFILE
+#include <sstream>
+#endif
+
 using namespace std;
 
 vector<ArrayQ> ClassPop::Qvalues;

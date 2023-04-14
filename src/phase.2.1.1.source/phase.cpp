@@ -83,7 +83,12 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
 #include <sstream>
 #ifdef CP_PHASE_NOFILE
 PhaseData* phaseData = NULL;
-int phase(PhaseData& data, int argc, char* argv[])
+#ifdef _MSC_VER
+#define PHASE_API __declspec(dllexport)
+#else
+#define PHASE_API extern "C"
+#endif
+PHASE_API int phase(PhaseData& data, int argc, char* argv[])
 #else
 int phase(int argc, char* argv[])
 #endif
