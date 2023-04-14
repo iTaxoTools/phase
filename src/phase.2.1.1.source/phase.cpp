@@ -86,7 +86,7 @@ PhaseData* phaseData = NULL;
 #ifdef _MSC_VER
 #define PHASE_API __declspec(dllexport)
 #else
-#define PHASE_API extern "C"
+#define PHASE_API
 #endif
 PHASE_API int phase(PhaseData& data, int argc, char* argv[])
 #else
