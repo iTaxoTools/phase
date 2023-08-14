@@ -7,6 +7,7 @@
 #include "errcheck.hpp"
 #include "utility.hpp"
 #include "randombuffer.hpp"
+#include "globals.hpp"
 
 #include <string>
 #include <iostream>
@@ -39,16 +40,12 @@ int MCMCResolveStepEstimate(int maxnloci, int nloci, RandomBuffer & rand){
       updateloci = 2;
   }
 
-
   if((nloci>updateloci) && (updateloci>0)){
-
-    cerr << "****************  " << updateloci << " + "  << nloci - updateloci << "  " << nloci << " | "  << updateloci << "  ****************\n";
 
     int a = MCMCResolveStepEstimate(maxnloci, updateloci, rand);
     int b = MCMCResolveStepEstimate(maxnloci, nloci - updateloci, rand);
     return a+b+1;
   }
-  cerr << "****************\n";
 
   return 1;
 }
@@ -85,8 +82,6 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
     ClassPop LHSpop(allpop,0,updateloci);
     ClassPop RHSpop(allpop,updateloci,nloci);
 
-    cerr << "****************  " << LHSpop.get_nloci() << " + "  << RHSpop.get_nloci() << "  " << nloci << " | "  << updateloci << "  ****************\n";
-
     if(cmdoptions["hierarchical"] == 1){
       // following is for hierarchical ligation, instead of progressive
       LHSpop = ClassPop(allpop,0,nloci/2);
@@ -97,12 +92,12 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
     MCMCResolve(LHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment,max_segment,rand,false);
     cerr << segment << " segment operations done" << endl;
     segment ++;
-    cerr << "#####################  " << segment << "/" << max_segment << "  #####################\n";
+    if (g_progressCallback) g_progressCallback(segment, max_segment, "MCMC resolution");
 
     MCMCResolve(RHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment,max_segment,rand,false);
     cerr << segment << " segment operations done" << endl;
     segment ++;
-    cerr << "#####################  " << segment << "/" << max_segment << "  #####################\n";
+    if (g_progressCallback) g_progressCallback(segment, max_segment, "MCMC resolution");
 
     allpop = ClassPop(LHSpop,RHSpop,(1.0/nchr)*d_cmdoptions["minfreq"]);
 
@@ -117,7 +112,6 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
     bool initialise = true;
     if(cmdoptions["blocks"])
       initialise = false;
-    cerr << "****************\n";
     loglik = allpop.MCMCListResolvePhase(cmdoptions, Niter, Nthin, Nburn, vecDelta,d_cmdoptions, filename, initialise, collectdata);
   }
 

@@ -13,6 +13,7 @@
 #include "HapList2.hpp"
 #include "arrayQ.hpp"
 #include "errcheck.hpp"
+#include "globals.hpp"
 
 #include <iomanip>
 #include <fstream>
@@ -107,8 +108,8 @@ ClassPop::ClassPop ( const ClassPop & cpop2 ) :
     vecdiffprob (cpop2.vecdiffprob),
     CC (0), //cpop2.Nind),
     DiffCount (0), //(cpop2.Nind),
-    haplist ( cpop2.haplist )    
-{    
+    haplist ( cpop2.haplist )
+{
   for(int ind = 0; ind < cpop2.pop.size(); ind++)
     pop[ind] = CIndividual(cpop2.pop[ind]);
   //coding = new vector<int> [2];
@@ -116,7 +117,7 @@ ClassPop::ClassPop ( const ClassPop & cpop2 ) :
   coding[1] = vector<int>(cpop2.coding[1]);
 }
 
-ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) : 
+ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
   casecontrol(cpop2.casecontrol),
   groupsize(cpop2.groupsize),
   Nloci(lastlocus-firstlocus),
@@ -159,8 +160,8 @@ ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
     //coding = new vector<int> [2];
 
   coding[0] = vector<int>(cpop2.coding[0].begin()+firstlocus, cpop2.coding[0].begin()+lastlocus);
-  coding[1] = vector<int>(cpop2.coding[1].begin()+firstlocus, cpop2.coding[1].begin()+lastlocus); 
-  
+  coding[1] = vector<int>(cpop2.coding[1].begin()+firstlocus, cpop2.coding[1].begin()+lastlocus);
+
  //   if(TREATSNPSASMS)
 //      NSNP = 0;
 //    else
@@ -168,7 +169,7 @@ ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
 //        if(loci_type[r]=='S'){
 //  	NSNP++;
 //        }
-//      }    
+//      }
 
 //    SNPlist = vector<int> (NSNP);
 //    nonSNPlist = vector<int> (Nloci - NSNP);
@@ -185,8 +186,8 @@ ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
 //        else{
 //  	nonSNPlist[nonSNP++] = r;
 //        }
-//    }    
-  
+//    }
+
   for( int r = 0; r < Nloci; r++){
     if(TREATSNPSASMS)
       nonSNPlist.push_back(r);
@@ -198,8 +199,8 @@ ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
       else{
 	nonSNPlist.push_back(r);
       }
-  }    
- 
+  }
+
   if(Nloci == NSNP)
     ALLSNP=1;
   else
@@ -207,7 +208,7 @@ ClassPop::ClassPop ( const ClassPop & cpop2, int firstlocus, int lastlocus ) :
 
   ComputeRho();
   ComputeRhoDerivAndCurrentLogProb();
-  
+
   Computevecdiffprob();
 
 }
@@ -249,18 +250,18 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, double minfreq 
     CC (0),//CP1.Nind),
     DiffCount (0) //CP1.Nind)
     //    haplist ( CP1.haplist, CP2.haplist, minfreq )
-{    
+{
   if(CP1.Nind != CP2.Nind){
     cerr << "Error: trying to concatenate classpops of different size!" << endl;
     exit(1);
-  }	 
+  }
 
   for(int ind = 0; ind < pop.size(); ind++)
     pop[ind] = CIndividual(CP1.pop[ind],CP2.pop[ind]);
 
   position.insert(position.end(), CP2.position.begin(), CP2.position.end());
   Qptr.insert(Qptr.end(), CP2.Qptr.begin(), CP2.Qptr.end() );
-  
+
   vecRho.insert(vecRho.end(), CP2.vecRho.begin(), CP2.vecRho.end());
   vecRhoDeriv.insert(vecRhoDeriv.end(), CP2.vecRhoDeriv.begin(), CP2.vecRhoDeriv.end());
   RhoMult.insert(RhoMult.end(), CP2.RhoMult.begin(), CP2.RhoMult.end());
@@ -288,9 +289,9 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, double minfreq 
     if(RecomModel == 1 || RecomModel == 2){
     InitialiseSimpleHotspot(lambda.size(),RecomModel==2);
   }
-  
+
   vecTheta.insert(vecTheta.end(), CP2.vecTheta.begin(), CP2.vecTheta.end());
-   
+
   haplist = HapList(CP1.haplist, CP2.haplist, pop, minfreq);
 
   //coding = new vector<int> [2];
@@ -301,8 +302,8 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, double minfreq 
 
   ComputeRho();
   ComputeRhoDerivAndCurrentLogProb();
- 
-  
+
+
   Computevecdiffprob();
 
 }
@@ -341,25 +342,25 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, map<string, int
     CC (0), //CP1.Nind),
     DiffCount (0),// CP1.Nind),
     haplist ()
-{    
+{
   if(CP1.Nind != CP2.Nind){
     cerr << "Error: trying to concatenate classpops of different size!" << endl;
     exit(1);
-  }	 
+  }
 
   for(int ind = 0; ind < CP1.pop.size(); ind++)
     pop[ind] = CIndividual(CP1.pop[ind],CP2.pop[ind]);
 
   position.insert(position.end(), CP2.position.begin(), CP2.position.end());
   Qptr.insert(Qptr.end(), CP2.Qptr.begin(), CP2.Qptr.end() );
-  
+
   vecRho.insert(vecRho.end(), CP2.vecRho.begin(), CP2.vecRho.end());
   vecRhoDeriv.insert(vecRhoDeriv.end(), CP2.vecRhoDeriv.begin(), CP2.vecRhoDeriv.end());
   RhoMult.insert(RhoMult.end(), CP2.RhoMult.begin(), CP2.RhoMult.end());
 
   if(RecomModel == 0){
     for(int i = 0; i<CP1.RhoMult.size(); i++){
-      RhoMult[i] = CP1.RhoMean * CP1.RhoMult[i] / RhoMean; 
+      RhoMult[i] = CP1.RhoMean * CP1.RhoMult[i] / RhoMean;
       if(RhoMult[i]<0.01)
 	RhoMult[i] = 0.01;
     }
@@ -374,7 +375,7 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, map<string, int
     InitialiseSimpleHotspot(lambda.size(),RecomModel==2);
 
   vecTheta.insert(vecTheta.end(), CP2.vecTheta.begin(), CP2.vecTheta.end());
-    
+
   //coding = new vector<int> [2];
   coding[0] = vector<int>(CP1.coding[0]);
   coding[1] = vector<int>(CP1.coding[1]);
@@ -383,8 +384,8 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, map<string, int
 
   ComputeRho();
   ComputeRhoDerivAndCurrentLogProb();
- 
-  
+
+
 
   // add all four combinations for each individual
   for(int ind = 0; ind < Nind; ind++){
@@ -393,7 +394,7 @@ ClassPop::ClassPop ( const ClassPop & CP1, const ClassPop & CP2, map<string, int
     haplist.Add(Haplotype(CP1.pop[ind].get_haplotype(1),CP2.pop[ind].get_haplotype(0)));
     haplist.Add(Haplotype(CP1.pop[ind].get_haplotype(1),CP2.pop[ind].get_haplotype(1)));
   }
-  
+
   Computevecdiffprob();
 
   MCMCListResolvePhase(cmds, Niter, 1, Niter, vecDelta, d_cmds, "", false, false);
@@ -435,7 +436,7 @@ const ClassPop & ClassPop::operator=(const ClassPop & rhs)
     this->position = vector<double>(rhs.position);
     this->order = vector<int>(rhs.order);
     this->vecRho = vector<double>(rhs.vecRho);
-    this->vecRhoDeriv = vector<double>(rhs.vecRhoDeriv);   
+    this->vecRhoDeriv = vector<double>(rhs.vecRhoDeriv);
     this->RhoMean = rhs.RhoMean;
     this->RhoMult = vector<double>(rhs.RhoMult);
     this->right = rhs.right;
@@ -465,12 +466,12 @@ const ClassPop & ClassPop::operator=(const ClassPop & rhs)
 
   //  for(int ind = 0; ind < Nind; ind++)
 //      pop[ind] = CIndividual(cpop2.pop[ind]);
- 
+
 }
 
 void ClassPop::InitialiseSimpleHotspot(int nhotspot, bool fixedpos)
 {
-  
+
   if(!fixedpos){
     right = vector<double>(nhotspot,position[Nloci-1]);
     left = vector<double>(nhotspot,position[0]);
@@ -503,7 +504,7 @@ void ClassPop::read_data ( istream & input,
 	  buddy[i*2].push_back(i*2+1);
 	  buddy[i*2+1].push_back(i*2);
 	}
-	
+
 	// ifstream pedinput (filenames["pedigreefile"].c_str());
 // 	assure ( pedinput, filenames["pedigreefile"] );
 // 	pedinput >> Nchild;
@@ -524,8 +525,8 @@ void ClassPop::read_data ( istream & input,
 
       // Number of individuals
 
-        
-	
+
+
 // Number of loci
         input >> Nloci;
 
@@ -549,7 +550,7 @@ void ClassPop::read_data ( istream & input,
 	    }
 	    lastp = p;
 	  }
-	}	
+	}
 	else if(lt !='S' && lt != 'M'){
 	  cerr << "Error in input file, character " << lt << " should be S, M or " << POSITIONLINEINDICATOR << endl;
 	  exit(1);
@@ -596,7 +597,7 @@ void ClassPop::read_data ( istream & input,
 	RandomiseOrder();
 
 	vecTheta = vector<double> (Nloci,0);
-	
+
 	vecRho = vector<double> (Nloci,0);
 	vecRhoDeriv = vector<double> (Nloci,0);
 	RhoMult = vector<double> (Nloci,1);
@@ -605,7 +606,7 @@ void ClassPop::read_data ( istream & input,
 	lambda = vector<double>(cmds["nhotspot"],0);
 	left = vector<double>(cmds["nhotspot"]);
 	right = vector<double>(cmds["nhotspot"]);
- 
+
 	if(cmds["nhotspot"]>0){
 	  left[0] = d_cmds["left"]; // set left and right of hotspot
 	  right[0] = d_cmds["right"];
@@ -616,11 +617,11 @@ void ClassPop::read_data ( istream & input,
 	}
 
 	if(cmds["RecomModel"] == 1 || cmds["RecomModel"] == 2){
-	  InitialiseSimpleHotspot(cmds["nhotspot"],cmds["RecomModel"]==2);	  
+	  InitialiseSimpleHotspot(cmds["nhotspot"],cmds["RecomModel"]==2);
 	}
 	else
 	  ComputeRho();
-	
+
         SNPlist = vector<int> ();
 	nonSNPlist = vector<int> ();
 	for( int r = 0; r< Nloci; r++)
@@ -643,13 +644,13 @@ void ClassPop::read_data ( istream & input,
 #ifdef TREAT_SNPS_AS_MS
 	TREATSNPSASMS=1;
 #endif
- 
+
 	if(Nloci == NSNP)
 	  ALLSNP=1;
 	else
 	  ALLSNP=0;
 
-	 
+
         // Read in the genotypes
         //  if ( cmds["randomise"] == 1 ) {
 //              input_random( input, cmds["idpresent"] );
@@ -661,14 +662,14 @@ void ClassPop::read_data ( istream & input,
 	  if(cmds["casecontrol"]){
 	    input >> casecontrol[j];
 	  }
-	  
+
 	  j++;
 	  i->read_orig_phenotypes( input, loci_type,
 				   cmds["idpresent"], cmds["format"] );
 	}
-	
+
         // Initialize some other members
-       
+
 	BestLogProb = BIGNEGATIVE;
         coding[0] = vector<int> ( Nloci, 0);
         coding[1] = vector<int> ( Nloci, 0);
@@ -684,7 +685,7 @@ void ClassPop::read_data ( istream & input,
 	//  CC[n].resize(Nind);
 	//  knownCC[n].resize(Nind);
 	//	}
-       
+
 	//knownDiffCount.resize(Nind);
 	//for(int n=0; n<Nind; n++){
 	//  DiffCount[n].resize(Nind);
@@ -697,7 +698,7 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
 {
    // Recoding the alleles
   normalize (format);
-  
+
   // Impute missing alleles by random draws from the population
   // also initialize phase
   int count = 0;
@@ -717,16 +718,16 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
 	// Missing both allele
 	i->set_allele ( 1, locus, draw_random_allele (locus) );
 	i->set_allele ( 0, locus, draw_random_allele (locus) );
-	
+
       }
     }
   }
 
   vecTheta= vector<double> ( loci_type.size(), theta );
-   
+
   // Calculate theta if necessary
-  if ( theta <= 0.0 ) calc_theta ( ); 
-  
+  if ( theta <= 0.0 ) calc_theta ( );
+
   // cout << "Theta Values" << endl;
   //for(int r=0; r<Nloci; r++)
   //  cout << vecTheta[r] << endl;
@@ -735,13 +736,14 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
   cerr << "Computing matrix Q, please wait" << endl;
   ClassPop::Qvalues = vector<ArrayQ>(loci_type.size());
   ClassPop::QSNP = ArrayQ('S', pop.size()+1, vecTheta[0], 0);
-  
+
   Qptr = vector<ArrayQ *>(loci_type.size());
   vecdiffprob = vector<double> (loci_type.size()+1);
 
   for(int r=0; r<loci_type.size(); r++){
     cerr << "Locus " << setw(5) << (r+1) << "\033[A" << endl;
-    cerr << "#####################  " << r << "/" << loci_type.size() << "  #####################\n";
+    if (g_progressCallback) g_progressCallback(r, loci_type.size(), "Computing matrix Q");
+
     //cer << "; Theta = " << vecTheta[r] << endl;
     if(loci_type[r] == 'M'){
       Qvalues[r] = ArrayQ(loci_type[r], pop.size()+1, vecTheta[r], vecDelta[r] );
@@ -750,7 +752,7 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
       Qptr[r] = &QSNP;
   }
   cerr << "Done computing Q" << endl;
-   
+
   Computevecdiffprob();
 
   ComputeRhoDerivAndCurrentLogProb();
@@ -789,7 +791,7 @@ void ClassPop::Computevecdiffprob()
 // make a list of the haplotypes present in the sample
 // if usebestguess is true, then use best guess to make list
 // otherwise use current haps to make list
-void ClassPop::MakeHapList(bool usebestguess) 
+void ClassPop::MakeHapList(bool usebestguess)
 {
   haplist.RemoveAll();
   for(int ind =0; ind<Nind; ind++){
@@ -800,7 +802,7 @@ void ClassPop::MakeHapList(bool usebestguess)
 //
 // make a list of all possible haplotypes present in the sample
 
-void ClassPop::MakeAllPossHapList() 
+void ClassPop::MakeAllPossHapList()
 {
   cerr << "Making List of all possible haplotypes" << endl;
   haplist.RemoveAll();
@@ -821,9 +823,9 @@ void ClassPop::OutputPhaseProbs(ostream & ostr, bool PrintAll)
 {
   for(int n=0; n<Nind; n++)
     {
-      pop[n].print_phase_prob(ostr, PrintAll);      
+      pop[n].print_phase_prob(ostr, PrintAll);
     }
-  
+
 }
 
 
@@ -834,14 +836,14 @@ double ClassPop::resolve_phase_NR  (
                                ostream & ostrHaplotypes,
                                //ostream & ostrPhases,
 			       ostream & ostrMonitor,
-			       vector<double> & vecDelta, 
+			       vector<double> & vecDelta,
 			       int verbose, int fAncUpdate, int fNaiveGibbs)
 {
 
-#ifdef BIGDATASETS // if compiled for big data sets, 
+#ifdef BIGDATASETS // if compiled for big data sets,
                    //do not assign memory for FF
-    ArrayFF FF ( 1 ); 
-    
+    ArrayFF FF ( 1 );
+
     ArrayDiffProb DiffProb (loci_type, 0, Qptr);
     ArrayDiploidDiffProb DiploidDiffProb(loci_type, 0, Qptr);
     DiffCount.resize(0);
@@ -855,19 +857,19 @@ double ClassPop::resolve_phase_NR  (
     DiffCount.resize(Nind);
     CC.resize(Nind);
     cerr << "Computing Initial Values for arrays for each individual" << endl;
-    
+
     DiffCount.compute(pop, SNPlist);
     for(int n=0;n<pop.size(); ++n){
       cerr<< "Individual " << setw(6) << (n+1) << "\033[A";
       CC.compute(n,Qptr,pop,nonSNPlist,loci_type,DiffProb);
       cerr << " done" << endl;
-    } 
+    }
 #endif
 
-   
 
-    
-    
+
+
+
     // Probablity of choosing individuals to update
     vector<double> ChooseProb ( pop.size() );
     // Sum of ChooseProb
@@ -880,56 +882,56 @@ double ClassPop::resolve_phase_NR  (
       cerr << "No one is ambiguous!" << endl;
       return 0;
     }
-    
+
     // The person to update at each iteration
     int n1 = 0;
     // {{{ Burn-in
-  
+
     ChooseSum = 0;
     for (int n = 0; n < pop.size(); ++n) {
       ChooseProb[n] = pop[n].numunknown() > 1 ? 1.0 : 0.0;
       ChooseSum += ChooseProb[n];
     }
 
-     
+
     if(ChooseSum>0){
       for (int iter = 0; iter < Nburn; ++iter) {
 	if ( iter % ITPRINT == 0 ) {
 	  cerr << "Burn-in " << iter << endl;
 	}
-	for (int thin = 0; thin < Nthin; ++thin) {	  
+	for (int thin = 0; thin < Nthin; ++thin) {
 	  n1 = rint2 ( ChooseProb, ChooseSum );
 	  update_NR ( n1, FF, DiffProb, DiploidDiffProb, fAncUpdate, fNaiveGibbs);
 	}
-	
+
 	for(int n=0;n<pop.size(); ++n) //recompute CC to avoid rounding errors
-	  CC.compute(n,Qptr,pop,nonSNPlist,loci_type,DiffProb);	    
+	  CC.compute(n,Qptr,pop,nonSNPlist,loci_type,DiffProb);
 	ostrMonitor << monitor_prob(DiffProb  ) << endl;
       }
     }
 
-    
+
     // }}}
     // {{{ Main loop
-    
+
     cerr << "Performing Main iterations" << endl;
     ChooseSum = 0;
     for (int n = 0; n < pop.size(); ++n) {
       ChooseProb[n] = pop[n].numunknown() > 1 ? 1.0 : 0.0;
       ChooseSum += ChooseProb[n];
     }
-    
+
     double averagemonitorprob =0;
     for (int iter = 0; iter < Niter; ++iter) {
-      
+
       if ( iter % ITPRINT == 0 ) {
 	cerr << "Iteration " << iter << endl;
       }
-      for (int thin = 0; thin < Nthin; ++thin) {	
+      for (int thin = 0; thin < Nthin; ++thin) {
 	n1 = rint2 ( ChooseProb, ChooseSum );
 	update_NR ( n1, FF, DiffProb, DiploidDiffProb, fAncUpdate, fNaiveGibbs);
       }
-      
+
       //UpdateCounts();
       for(int n=0;n<pop.size(); ++n) //recompute CC to avoid rounding errors
 	CC.compute(n,Qptr,pop,nonSNPlist,loci_type,DiffProb);
@@ -960,7 +962,7 @@ double ClassPop::ListResolvePhase(char method, int Niter, vector<double> & vecDe
 {
   vecRho = vector<double> (position.size(),0);
 
-  
+
   if(initialise){
     MakeAllPossHapList();
   }
@@ -985,26 +987,26 @@ void ClassPop::OutputHapList(ostream & ostr, double probcutoff , bool printheade
 //   vecRhoDeriv = vector<double>(position.size());
 //   RhoMult = vector<double>(position.size(),1);
 //   RhoMean = rho;
-  
+
 //   ComputeRho();
 //   ComputeRhoDerivAndCurrentLogProb();
 // }
 
 double ClassPop::MCMCListResolvePhase(map<string,int> & cmds, int Niter, int Nthin, int Nburn, vector<double> & vecDelta, map<string,double> & d_cmds, string filename, bool initialise , bool collectdata)
 {
-    
+
   if(initialise && (cmds["knowninfo"]!=999)){
     haplist.RemoveAll();
     MakeAllPossHapList();
   }
 
-  
+
   if(cmds["verbose"]){
     cout << "Haplist being used:" << endl;
     haplist.Output(cout, coding);
   }
 
-  
+
   double loglik;
 
   if(cmds["useped"])
@@ -1023,9 +1025,9 @@ double ClassPop::MCMCListResolvePhase(map<string,int> & cmds, int Niter, int Nth
 
   //  haplist.Output(cout, coding, 0.001);
   //UpdateCounts();
-  
+
   //cout << "Original LogLik: " << loglik << endl;
- 
+
   // Now compute loglik as the FullDataPseudoLogLikelihood for
   // the best guesses (which have been put into pop by the MCMC method)
   // (actually found this performed slightly worse)
@@ -1050,10 +1052,10 @@ double ClassPop::MCMCListResolvePhase(map<string,int> & cmds, int Niter, int Nth
 
 void ClassPop::GibbsResolvePhase  (int Niter, double dirprior)
 {
-     
+
     // }}}
     // {{{ Main loop
-   
+
     MakeHapList(false); // make list of haplotypes
 
     for (int iter = 0; iter < Niter; ++iter) {
@@ -1065,7 +1067,7 @@ void ClassPop::GibbsResolvePhase  (int Niter, double dirprior)
 	  GibbsUpdate ( n1, dirprior );
         }
 
-    }	
+    }
     // }}}
 }
 
@@ -1074,11 +1076,11 @@ void ClassPop::GibbsUpdate( int n1, double dirprior)
 {
   // see if individual n1 can be made up from one or two haps in
   // the current list.
-  
+
   int c,r,r0,newhappos;
- 
+
   // contains -1 if that hap cannot be extracted
-  
+
   vector<double> TempProb (haplist.get_listlength(),0);
   double TempProbSum=0;
 
@@ -1094,13 +1096,13 @@ void ClassPop::GibbsUpdate( int n1, double dirprior)
   //OutputList(cout);
 
 // attempt to extract haplotypes in list from genotype [n1]
-   
+
   haplist.ComputeVectorOfNaiveGibbsProbs(pop[n1],TempProb,TempProbSum,dirprior);
 
   // for(int listpos=0; listpos < listlength; listpos++){
   //   cout << listpos << ":" << CompList[listpos] << "," << TempProb[listpos] << endl;
   // }
-  
+
   //cout << TempProbSum << endl;
 
   double randprob=exp(2*(log(dirprior)-Nloci*log(2.0)) + (pop[n1].numunknown()-1)*log(2.0));
@@ -1108,10 +1110,10 @@ void ClassPop::GibbsUpdate( int n1, double dirprior)
 
   // prob of randomising
 
-  
+
 
   //if(ranf()>randprob/(randprob+TempProbSum)) {
- 
+
   //Note: the above line is how things really ought to be done for
   //a Dirichlet prior. However, we found the following worked better
   //in practice (which does make intuitive sense:
@@ -1124,16 +1126,16 @@ void ClassPop::GibbsUpdate( int n1, double dirprior)
     newhappos=rint2(TempProb,TempProbSum);
     Haplotype newhap = haplist.get_haplotype(newhappos);
     const vector<int> unknown_list =  pop[n1].get_unknown_pos();
-    for (int locus = 0; locus < Nloci; locus ++){	
+    for (int locus = 0; locus < Nloci; locus ++){
       if(pop[n1].get_haplotype(0,locus) != newhap.get_allele(locus))
 	pop[n1].flip_phase(locus);
     }
   }
-  else{ 
+  else{
     // randomise haplotype at unknown positions
     const vector<int> unknown_list =  pop[n1].get_unknown_pos();
     for (vector<int>::const_iterator u = unknown_list.begin();
-	 u != unknown_list.end(); ++u ) {     
+	 u != unknown_list.end(); ++u ) {
       pop[n1].set_phase( *u , (int) floor(2*ranf()) );
     }
   }
@@ -1223,7 +1225,7 @@ void ClassPop::input_hudson_data ( istream & istr  )
         }
     }
     // Initialize some other members
-   
+
     coding[0] = vector<int> ( Nloci, 0);
     coding[1] = vector<int> ( Nloci, 0);
 }
@@ -1277,7 +1279,7 @@ void ClassPop::renormalize ( ClassPop & cp)
                             coding[0][locus] + newcoding0[locus]);
 			i->set_original_allele (chr, locus, allele -
                             coding[0][locus] + newcoding0[locus]);
-			
+
                     }
                 }
             }
@@ -1291,7 +1293,7 @@ void ClassPop::renormalize ( ClassPop & cp)
                         allele = i->get_allele(chr, locus);
                         i->set_allele ( chr, locus, 1-allele );
 			i->set_original_allele ( chr, locus, 1-allele );
-			
+
                     }
                 }
             }
@@ -1350,7 +1352,7 @@ void ClassPop::normalize ( int format )
 
                         }
                     }
-                } 
+                }
             }
 
             coding[0][locus] = offset;
@@ -1358,7 +1360,7 @@ void ClassPop::normalize ( int format )
 
         } else {
 
-	  
+
             // For SNP sites, recode so that the two alleles are 0 and
             // 1. Store the decode theme.
 	  int firstnonmissing=-1;
@@ -1368,13 +1370,13 @@ void ClassPop::normalize ( int format )
 	    azero = pop[firstnonmissing].get_orig_nonmissing_allele(locus);
 	  }while( (azero==MISSMS)
 		  || ((format == 2) && (azero == (int) 'H')) );
-	  
+
 	  int aone = -1;
 	  for (vector<CIndividual>::iterator i = pop.begin();
 	       i != pop.end(); ++i) {
 	    for ( int chr = 0; chr < 2; ++chr ) {
 	      allele = i->get_orig_allele(chr, locus);
-	      if ( (allele  == MISSMS) || 
+	      if ( (allele  == MISSMS) ||
 		   ( (allele == (int) 'H') && (format == 2) ) ) {
 		continue;
 	      } else if ( allele == azero ) {
@@ -1387,7 +1389,7 @@ void ClassPop::normalize ( int format )
 		  cerr << "Error in input file: more than 2 alleles at SNP locus." << endl;
 		  cerr << "Individual = ";
 		  i->print_id(cerr);
-		  cerr << "; Locus = " << (locus+1) << endl; 
+		  cerr << "; Locus = " << (locus+1) << endl;
 		  cerr << "Alleles are: " << (char) azero << "," << (char) aone << ", and " << (char) allele << endl;
 		  cerr << "(Note that this error may indicate other problems with the formatting of" << endl;
 		  cerr << "the input file, and not actually the use of multiple alleles at a SNP locus)" << endl;
@@ -1395,11 +1397,11 @@ void ClassPop::normalize ( int format )
 		}
 		i->set_allele ( chr, locus, 1 );
 		i->set_original_allele ( chr, locus, 1 );
-		
+
 	      }
 	    }
 	  }
-	  
+
 	  if(aone == -1){ // if only been one allele set other allele
 	    aone = azero+1; // to be that allele + 1 (used for format =2
 	    // in case where no minor allele hets observed).
@@ -1441,7 +1443,7 @@ int ClassPop::draw_random_allele ( int locus ) const
       exit(1);
     }
     return allele;
-    
+
 }
 
 
@@ -1498,7 +1500,7 @@ double ClassPop::calc_heterozygosity ( int locus ) const
   double temp = 1.0 / (2.0 * pop.size());
   for (vector<CIndividual>::const_iterator i = pop.begin(); i != pop.end(); ++i){
     for (int c = 0; c < 2; ++c) {
-      freq[i->get_allele(c, locus)] += temp; 
+      freq[i->get_allele(c, locus)] += temp;
       //cout << "allele: " << ( i->get_allele(c,locus) ) << endl;
     }
   }
@@ -1520,7 +1522,7 @@ void ClassPop::calc_theta ()
         } else {
             vecTheta[r] = 1.0 / ( 1 - calc_heterozygosity ( r ) );
             vecTheta[r] = ( vecTheta[r] * vecTheta[r] - 1.0) * 0.5;
-        }	
+        }
     }
 }
 //
@@ -1528,7 +1530,7 @@ void ClassPop::calc_theta ()
 //
 double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 {
-  
+
   //  int firstSNP= 0; //first SNP locus;
 //    while((loci_type[firstSNP]!='S') && (firstSNP<(Nloci-1)))
 //      firstSNP++;
@@ -1542,7 +1544,7 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
     if(temp > -1000 && temp < 1000){ //prevent numerical problems
       logprob += temp;
     }
-    
+
   }
   if(logprob > BestLogProb){
     SaveCurrentState();
@@ -1560,17 +1562,17 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 
 //   vector<int> missingSNP = pop[id].get_missingSNP_list();
 //   vector<int> missingMS = pop[id].get_missingMS_list();
- 
+
 //   if(missingSNP.size()+missingMS.size()>0){
 
 //     vector<int> notmissingSNP = pop[id].get_notmissingSNP_list();
 //     vector<int> notmissingMS = pop[id].get_notmissingMS_list();
-    
-    
+
+
 //     int num_notmissingSNP = notmissingSNP.size();
-    
+
 //     // update the missing data positions for chromosome 0 of id
-    
+
 //     int nchr = Nind + Nind -2;
 //     int ptr=0;
 //     total_sum=0;
@@ -1579,15 +1581,15 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 // 	for(c0 = 0; c0 < 2; c0++){
 // 	  int nd=NDiff(pop,id,0,n0,c0,notmissingSNP);
 // 	  for(t0 = 0; t0 < SS; t0++){
-// 	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1) 
-// 	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0) 
+// 	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1)
+// 	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0)
 // 	      * CCProb(pop,id,0,n0,c0,t0,nchr,Qptr,notmissingMS);
 // 	    total_sum += tempprob[ptr++];
 // 	  }
 // 	}
 //       }
 //     }
-    
+
 //     ptr = 0;
 //     // sample n0,c0,t0 from tempprob
 
@@ -1598,7 +1600,7 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 //       if(n0 != id){
 // 	for (c0 = 0; c0 < 2; ++c0) {
 // 	  for (t0 = 0; t0 < SS; ++t0) {
-// 	    if ( ptr == temp ) {	  
+// 	    if ( ptr == temp ) {
 // 	      goto ENDLOOP1;
 // 	    } else {
 // 	      ++ptr;
@@ -1607,41 +1609,41 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 // 	}
 //       }
 //     }
-//   ENDLOOP1: 
-    
+//   ENDLOOP1:
+
 //     //cout << pop[id].get_missingSNP_list().size() << endl;
 //     //cout << pop[id].get_missingMS_list().size() << endl;
-    
+
 //     //cout << "HERE1" << id << " " << n0 << " " <<  c0 << " " << t0 << " " << nchr << " " << endl;
 //     ImputeMissingPositions(id, 0, n0, c0, t0, nchr, missingSNP);
 //     //cout << "HERE2" << id << " " << n0 << " " <<  c0 << " " << t0 << " " << nchr << " " << endl;
 //     ImputeMissingPositions(id, 0, n0, c0, t0, nchr, missingMS);
-    
+
 //   // update missing data positions for chromosome 1
 //     nchr++;
 
-//     // this gives a more elegant way of sampling from tempprob, 
+//     // this gives a more elegant way of sampling from tempprob,
 //     //but untested; and is it faster?
 //  //     ptr=0;
 // //      total_sum=0;
 // //      for(n0 =0; n0 < Nind; n0++){
 // //        for(c0 = 0; c0 < 2; c0++){
-// //  	int nd=NDiff(pop,id,1,n0,c0,notmissingSNP);	
+// //  	int nd=NDiff(pop,id,1,n0,c0,notmissingSNP);
 // //  	for(t0 = 0; t0 < SS; t0++){
 // //  	  if((n0!=id) || (c0==0))
-// //  	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1) 
-// //  	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0) 
+// //  	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1)
+// //  	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0)
 // //  	      * CCProb(pop,id,1,n0,c0,t0,nchr,Qptr,notmissingMS);
 // //  	  else
 // //  	    tempprob[ptr] = 0;
 // //  	  total_sum += tempprob[ptr++];
 // //  	}
-// //        }	
+// //        }
 // //      }
-    
-    
+
+
 // //      ptr = 0;
-    
+
 // //      // sample n0,c0,t0 from tempprob
 // //      temp = rint2 ( tempprob, total_sum );
 // //      t0 = temp % SS;
@@ -1656,28 +1658,28 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 //     for(n0 =0; n0 < Nind; n0++){
 //       for(c0 = 0; c0 < 2; c0++){
 // 	if((n0!=id) || (c0==0)){
-// 	  int nd=NDiff(pop,id,1,n0,c0,notmissingSNP);	
+// 	  int nd=NDiff(pop,id,1,n0,c0,notmissingSNP);
 // 	  for(t0 = 0; t0 < SS; t0++){
-// 	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1) 
-// 	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0) 
+// 	    tempprob[ptr] = DiffProb(nchr, t0, nd, 1)
+// 	      * DiffProb(nchr, t0, num_notmissingSNP - nd, 0)
 // 	      * CCProb(pop,id,1,n0,c0,t0,nchr,Qptr,notmissingMS);
 // 	    total_sum += tempprob[ptr++];
 // 	  }
 // 	}
 //       }
 //     }
-    
+
 //     ptr = 0;
-    
+
 //     // sample n0,c0,t0 from tempprob
 //     temp = rint2 ( tempprob, total_sum );
-    
+
 
 //     for (n0 = 0; n0 < Nind; ++n0) {
-//       for (c0 = 0; c0 < 2; ++c0) { 
+//       for (c0 = 0; c0 < 2; ++c0) {
 // 	if((n0!=id) || (c0==0)){
 // 	  for (t0 = 0; t0 < SS; ++t0) {
-// 	    if ( ptr == temp ) {	  
+// 	    if ( ptr == temp ) {
 // 	      goto ENDLOOP2;
 // 	    } else {
 // 	      ++ptr;
@@ -1686,15 +1688,15 @@ double ClassPop::monitor_prob(const ArrayDiffProb & DiffProb)
 // 	}
 //       }
 //     }
-//   ENDLOOP2: 
-       
+//   ENDLOOP2:
+
 //     //cout << pop[id].get_missingSNP_list().size() << endl;
 //     //cout << pop[id].get_missingMS_list().size() << endl;
 //     //cout << "HERE3" << id << " " << n0 << " " <<  c0 << " " << t0 << " " << nchr << " "  << endl;
 //     ImputeMissingPositions(id, 1, n0, c0, t0, nchr, missingSNP);
 //     //cout << "HERE4" << id << " " << n0 << " " <<  c0 << " " << t0 << " " << nchr << " "  << endl;
 //     ImputeMissingPositions(id, 1, n0, c0, t0, nchr, missingMS);
-    
+
 //     Resymmetrize(DiffCount,id);
 //     if(ALLSNP==0)
 //       Resymmetrize(CC,id);
@@ -1713,12 +1715,12 @@ void ClassPop::ImputeMissingPositions(int n0, int c0, int n1, int c1, int t, int
 //    }
 
   for (vector<int>::const_iterator u = uselist.begin();
-          u != uselist.end(); ++u ) {  
+          u != uselist.end(); ++u ) {
     //cout << "Locus " << *u << endl;
-    
-    int from = pop[n1].get_haplotype(c1,*u); 
+
+    int from = pop[n1].get_haplotype(c1,*u);
     int new_allele = impute_allele (*u, nchr, t, from);
-    //cout << "from " << from << "to " << new_allele << endl; 
+    //cout << "from " << from << "to " << new_allele << endl;
     int oldtarg0 = pop[n0].get_haplotype(0,*u);
     int oldtarg1 = pop[n0].get_haplotype(1,*u);
     pop[n0].update_haplotype (c0, *u, new_allele);
@@ -1768,7 +1770,7 @@ void ClassPop::update_NR ( int n1,
 			const ArrayDiploidDiffProb & DiploidDiffProb,
 			int fAncUpdate,
                         bool fNaiveGibbs)
-{     
+{
   if (fNaiveGibbs ){
     GibbsUpdate(n1,DIRPRIOR);
   } else {
@@ -1778,21 +1780,21 @@ void ClassPop::update_NR ( int n1,
     //DiffCount[n1].compute(n1, pop, SNPlist);
     //cout << "Diffcount probability " << DiffCount[n1].calc_prob(n1,NSNP,DiffProb) << endl;
     //#endif
-    
-    
+
+
     //NOTE: could make more efficient by ignoring missing positions
     // in update_phase_NR_fastestforsmallr
-    
-#ifdef BIGDATASETS     
-    update_phase_NR_fastestforsmallr ( n1, DiffProb, 5);  	
+
+#ifdef BIGDATASETS
+    update_phase_NR_fastestforsmallr ( n1, DiffProb, 5);
 #else
     if ( pop[n1].numunknown() < 7)
-      update_phase_NR_fastestforsmallr ( n1, DiffProb, 7);    
-    else      
+      update_phase_NR_fastestforsmallr ( n1, DiffProb, 7);
+    else
       update_phase_NR ( n1, FF, DiffProb, DiploidDiffProb);
 #endif
-    //UpdateMissing_NR ( n1, DiffProb);         
-  }  
+    //UpdateMissing_NR ( n1, DiffProb);
+  }
 }
 
 //
@@ -1807,17 +1809,17 @@ void ClassPop::diff_calc_phase_prob(int n, vector<int> updatelist, vector<double
 #ifdef DEBUG
   cout << "diff_calc_phase_prob called with n=" << n << " and updatelist length " << updatelist.size() << endl;
 #endif
-  if(updatelist.size()==1){   
+  if(updatelist.size()==1){
     *prob_pointer++ = DiffCount.calc_prob(n,NSNP, DiffProb);
     pop[n].flip_phase(updatelist[0]);
     DiffCount.Update(n,pop,updatelist[0]);
     *prob_pointer++ = DiffCount.calc_prob(n,NSNP, DiffProb);
   }
   else {
-    int lastpos = updatelist.back(); 
+    int lastpos = updatelist.back();
     updatelist.pop_back(); // remove end from update list
     diff_calc_phase_prob(n,updatelist,prob_pointer,DiffProb);
-    pop[n].flip_phase(lastpos);	
+    pop[n].flip_phase(lastpos);
     DiffCount.Update(n,pop,lastpos);
     diff_calc_phase_prob(n,updatelist,prob_pointer,DiffProb);
   }
@@ -1835,34 +1837,34 @@ void ClassPop::calc_phase_prob(int n, vector<int> updatelist, vector<double>::it
   cout << "calc_phase_prob called with n=" << n << " and updatelist length " << updatelist.size() << endl;
 #endif
 
-  
+
   if(updatelist.size()==1){
     *prob_pointer++ = DiffCount.CombineProb(n,NSNP,DiffProb,CC);
-    
+
     pop[n].flip_phase(updatelist[0]);
-    
+
     if(loci_type[updatelist[0]]!='S' || TREATSNPSASMS)
       CC.Update(n,Qptr,pop,updatelist[0]);
     else
-      DiffCount.Update(n,pop,updatelist[0]);	
-    
+      DiffCount.Update(n,pop,updatelist[0]);
+
     *prob_pointer++ = DiffCount.CombineProb(n,NSNP,DiffProb,CC);
-    
+
   }
   else {
-    int lastpos = updatelist.back(); 
+    int lastpos = updatelist.back();
     updatelist.pop_back(); // remove end from update list
     calc_phase_prob(n, updatelist, prob_pointer, DiffProb);
-    pop[n].flip_phase(lastpos);	
-    
+    pop[n].flip_phase(lastpos);
+
     if(loci_type[lastpos]!='S' || TREATSNPSASMS )
       CC.Update(n,Qptr,pop,lastpos);
     else
       DiffCount.Update(n,pop,lastpos);
-    
+
     calc_phase_prob(n, updatelist, prob_pointer, DiffProb);
   }
-    
+
 }
 
 
@@ -1879,7 +1881,7 @@ int convert_phase(int phasenum, int pos){
 }
 
 void ClassPop::update_phase_NR ( int n,
-                                 ArrayFF & FF, const ArrayDiffProb & DiffProb, 
+                                 ArrayFF & FF, const ArrayDiffProb & DiffProb,
 				 const ArrayDiploidDiffProb & DiploidDiffProb)
 {
 
@@ -1905,7 +1907,7 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
 
     vector<double> tempprob(2, 0.0);
 
-    vector<double> errorprobs(4,0.0); // There are 4 types of error: no error, 
+    vector<double> errorprobs(4,0.0); // There are 4 types of error: no error,
     //error in allele 0, error in allele 1, and  error in both!
 
     int r = 0;
@@ -1932,9 +1934,9 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
       targ1 = pop[n].get_allele(1, r);
       oldtarg0 = pop[n].get_haplotype(0, r);
       oldtarg1 = pop[n].get_haplotype(1, r);
-	
+
       switch ( pop[n].n_missing(r) ) {
-      case 0:            
+      case 0:
 	if (n1 == n) {
 	  tempprob[0] = PrHitTarg(r, nchr, t0, from0, targ0, Qptr) *
 	    PrHitTarg(r, nchrplus1, t1, targ0, targ1, Qptr);
@@ -1948,8 +1950,8 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
 	}
 	// Update phase
 	newphase=  rint2(tempprob,tempprob[0] + tempprob[1]);
-	
-	pop[n].set_phase (r, newphase);	      
+
+	pop[n].set_phase (r, newphase);
 	break;
       case 1:
 	// allele 1 was imputed
@@ -1960,11 +1962,11 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
 	  tempprob[0] = PrHitTarg(r, nchr, t0, from0, targ0, Qptr);
 	  tempprob[1] = PrHitTarg(r, nchr, t1, from1, targ0, Qptr);
 	}
-	
+
 	// Update phase
 	newphase=  rint2(tempprob,tempprob[0] + tempprob[1]);
-	pop[n].set_phase (r, newphase);    
-	
+	pop[n].set_phase (r, newphase);
+
 	// Impute allele 1
 	if(newphase==0)
 	  pop[n].update_haplotype (1, r,
@@ -1972,7 +1974,7 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
 	else
 	  pop[n].update_haplotype (1, r,
 				impute_allele (r, nchrplus1, t0, from0));
-	
+
 	break;
       case 2:
 	// Impute both alleles
@@ -1982,20 +1984,20 @@ cout << " update_phase_NR, which is not allowed for big data sets" << endl;
 			      impute_allele (r, nchr, t0, from0));
 	pop[n].update_haplotype (1, r,
 			      impute_allele (r, nchrplus1, t1, from1));
-	
-	
+
+
       }
-      
+
       if(loci_type[r]!='S' || TREATSNPSASMS)
 	CC.Update(n,Qptr,pop,r,oldtarg0,oldtarg1);
       else
 	DiffCount.Update(n,pop,r,oldtarg0,oldtarg1);
-      
+
     }
     Resymmetrize(DiffCount,n);
     if(ALLSNP==0)
       Resymmetrize(CC,n);
-    
+
 }
 
 int ClassPop::update_phase_NR_fastestforsmallr ( int n,
@@ -2028,7 +2030,7 @@ int ClassPop::update_phase_NR_fastestforsmallr ( int n,
     }
 
     vector <int> start_phase(updatelist.size(),0);
-    
+
     for(int u=0; u< updatelist.size(); u++){
       start_phase[u]=pop[n].get_phase(updatelist[u]);
     }
@@ -2037,7 +2039,7 @@ int ClassPop::update_phase_NR_fastestforsmallr ( int n,
     vector<double> tempprob(Nphase, 0.0);
     vector<double>::iterator p= tempprob.begin();
     calc_phase_prob(n, updatelist, p, DiffProb );
-        
+
     int newphase = rint2(tempprob);
 
 #ifdef DEBUG
@@ -2053,11 +2055,11 @@ int ClassPop::update_phase_NR_fastestforsmallr ( int n,
     cout << convert_phase(newphase,0) << convert_phase(newphase,1) << convert_phase(newphase,2) << convert_phase(newphase,3) << endl;
     cout << endl;
 #endif
-       
+
     // set phase to be newphase
     int np;
     for ( int u = 0; u < updatelist.size(); ++u ) {
-      int r  = updatelist[u];      
+      int r  = updatelist[u];
       np=((convert_phase(newphase,u) +  start_phase[u]) % 2);
       if(np != pop[n].get_phase(r)){
 	pop[n].flip_phase(r);
@@ -2065,7 +2067,7 @@ int ClassPop::update_phase_NR_fastestforsmallr ( int n,
 	  CC.Update(n,Qptr,pop,r);
 	}
 	else
-	  DiffCount.Update(n,pop,r);	  
+	  DiffCount.Update(n,pop,r);
       }
     }
     Resymmetrize(DiffCount,n);
@@ -2119,7 +2121,7 @@ double ClassPop::logProb(char method, vector<double> & rho, double Dprior, int g
   return logProb(method, rho, casecontrol, Dprior, group );
 }
 
-// compute the log of the PAC likelihood for individuals whose "groupvec" label is 
+// compute the log of the PAC likelihood for individuals whose "groupvec" label is
 // "group" (all individuals if group < 0)
 // (use the order in order[])
 double ClassPop::logProb(char method, vector<double> & rho, vector<int> & groupvec, double Dprior, int group )
@@ -2142,8 +2144,8 @@ double ClassPop::logProb(char method, vector<double> & rho, vector<int> & groupv
 	//cout << "Templist before:" << endl;
 	//templist.Output(cout, coding);
 	templist.Add(pop[ind],chr,false,1.0);
-	templist.MakePositiveHaps();  
-	
+	templist.MakePositiveHaps();
+
 	//cout << "Templist after:" << endl;
 	//templist.Output(cout, coding);
 	nchr++;
@@ -2159,7 +2161,7 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
   return logFDLSProb(rho, rhoderiv, computederiv, casecontrol, group);
 }
 
-// compute the log of the Prob of the individuals whose "groupvec" label is 
+// compute the log of the Prob of the individuals whose "groupvec" label is
 // "group" (all individuals if group < 0)
 // uses non-quadrature version (for inference of rho)
 double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bool computederiv, vector<int> & groupvec, int group )
@@ -2169,7 +2171,7 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
   // adding the conditional probabilities at each step
 
   templist.RemoveAll();
-  
+
   double logprob = 0;
   int nchr = 0;
 
@@ -2178,14 +2180,14 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
     *i=0;
 
   for(int n=0; n<NindToUseForRho; n++){
-    
+
     int ind = order[n];
-    
+
     for(int chr=0; chr<2; chr++){
-      
+
       //cout << "templist= " << endl;
       //templist.Output(cout, coding);
-      
+
       if((group < 0) || (groupvec[ind] == group)){
 	double condprob = templist.FDLSProb(pop[ind].get_haplotype(chr), Qptr, nchr, rho, deriv, computederiv, false, vector<int>(0), vecTheta, 2*NindToUseForRho);
 	// false means do not use quadrature; vector<int>(0) says no missing data (ie use complete data)
@@ -2194,7 +2196,7 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
 	//  cout << "Testing computation of conditional derivatives" << endl;
 	//        vector<double> tempRho = rho;
 	//        vector<double> tempRhoDeriv = deriv;
-	//        vector<double> dummy; 
+	//        vector<double> dummy;
 	//        for(int i=0; i<(Nloci-1); i++){
 	//  	double epsilon = 1e-10;
 	//  	tempRho = rho;
@@ -2202,18 +2204,18 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
 	//  	double newcondprob = templist.FDLSProb(pop[ind].get_haplotype(chr), Qptr, nchr,tempRho,dummy,false);
 	//  	double approxderiv = (newcondprob - condprob)/epsilon;
 	//  	cout << i << ": " << approxderiv << " " << tempRhoDeriv[i] << endl;
-	//        }	
+	//        }
 	// end of test
 
 	//cout << "condprob = " << condprob << endl;
 	if(condprob == 0)
 	  cerr << "Warning: underflow problem in computation of logFDLSProb" << endl;
-	  
+
 	logprob += log(condprob);
 	for(int i = 0; i< rhoderiv.size(); i++)
 	  rhoderiv[i] += deriv[i]/condprob;
 	templist.Add(pop[ind],chr,false,1.0);
-	templist.MakePositiveHaps();      
+	templist.MakePositiveHaps();
 	nchr++;
       }
     }
@@ -2224,7 +2226,7 @@ double ClassPop::logFDLSProb(vector<double> & rho, vector<double> & rhoderiv, bo
 
 // propose change to RhoMean, and accept or reject it
 // currently uses MH random walk on log(rhomean).
-// parameterization of rho is 
+// parameterization of rho is
 // log(rho(i)) = log(RhoMean) + log(rhomult(i))
 // or rho(i) = RhoMean * rhomult(i)
 // sigma is standard deviation of MH proposal
@@ -2234,7 +2236,7 @@ bool ClassPop::updateRhoMeanRandomWalk(double sigma ,map<string,double> & d_cmds
 
   if(RhoMean == 0)
     cerr << "Warning: estimate of recom rate reached zero" << endl;
- 
+
   bool accept;
 
   if(((RhoMean*rwfactor)>MAXRHOMEAN) || ((RhoMean*rwfactor)<MINRHOMEAN) ){
@@ -2244,19 +2246,19 @@ bool ClassPop::updateRhoMeanRandomWalk(double sigma ,map<string,double> & d_cmds
     vector<double> newRho = vecRho;
     for(vector<double>::iterator r = newRho.begin(); r!=newRho.end(); r++)
       (*r) *= rwfactor;
-    
+
     vector<double> dummy;
     double newlogprob = logFDLSProb(newRho, dummy, false);
-    
+
     double lpriorprob = logpriorprobRhoMean(RhoMean, rwfactor*RhoMean, d_cmds["meanRhoMean"], d_cmds["sdRhoMean"]);
-   
+
     accept = (ranf()<exp(newlogprob - CurrentLogProb + lpriorprob)) ;
     if(accept){
       vecRho = newRho;
       RhoMean *= rwfactor;
       CurrentLogProb = newlogprob;
-    } 
-  } 
+    }
+  }
     //cout << RhoMean << "," << CurrentLogProb << endl;
   return accept;
 }
@@ -2264,17 +2266,17 @@ bool ClassPop::updateRhoMeanRandomWalk(double sigma ,map<string,double> & d_cmds
 
 // propose change to RhoMean, and accept or reject it
 // using MH Langevin algorithm on log(rhomean).
-// parameterization of rho is 
+// parameterization of rho is
 // log(rho(i)) = log(RhoMean) + log(rhomult(i))
 // or rho(i) = RhoMean * rhomult(i)
 //
 // sigma is sd of proposal
 //
 bool ClassPop::updateRhoMeanLangevin(double sigma, map<string,double> & d_cmds)
-{ 
+{
   if(RhoMean == 0)
     cerr << "Warning: estimate of recom rate reached zero" << endl;
-  
+
   // start with derivative of log(prior) for OmegaMean = log(RhoMean)
   double deriv = (d_cmds["meanRhoMean"]- log(RhoMean)) / (d_cmds["sdRhoMean"] * d_cmds["sdRhoMean"]);
 
@@ -2286,7 +2288,7 @@ bool ClassPop::updateRhoMeanLangevin(double sigma, map<string,double> & d_cmds)
 
   // set up newRho to be langevin factor * rwfactor * old rho values
   vector<double> newRho = vecRho;
-  
+
   double epsilon = rnorm(0,sigma);
   double factor = exp(0.5*sigma*sigma*deriv + epsilon );
 
@@ -2294,7 +2296,7 @@ bool ClassPop::updateRhoMeanLangevin(double sigma, map<string,double> & d_cmds)
 
   //cout << "Current value of RhoMean = " << RhoMean << endl;
   // cout << "Proposed value of RhoMean = " << RhoMean*factor << endl;
-  
+
 
   if( ((RhoMean*factor)>MAXRHOMEAN) || ((RhoMean*factor)<MINRHOMEAN) ){
     accept = false;
@@ -2302,7 +2304,7 @@ bool ClassPop::updateRhoMeanLangevin(double sigma, map<string,double> & d_cmds)
 
     for(vector<double>::iterator r = newRho.begin(); r!=newRho.end(); r++)
       (*r) *= factor;
- 
+
     vector<double> newRhoDeriv = vecRhoDeriv;
     double newlogprob = logFDLSProb(newRho,newRhoDeriv,true);
     // compute new derivative of likelihood with respect to OmegaMean = log(RhoMean)
@@ -2310,27 +2312,27 @@ bool ClassPop::updateRhoMeanLangevin(double sigma, map<string,double> & d_cmds)
 
     for(int k=0; k<(Nloci-1); k++)
       newderiv += newRho[k] * newRhoDeriv[k];
-    
+
     // prob of going from logRhoMean to NewlogRhoMean, and back
     double logforwardsprob = logdnorm(epsilon,0,sigma);
     double backwardsepsilon = -log(factor) - 0.5*sigma*sigma*newderiv;
     double logbackwardsprob = logdnorm(backwardsepsilon,0,sigma);
     double logHastingsRatio = logbackwardsprob - logforwardsprob;
-    
+
     // cout << "HastingsRatio:" << exp(logHastingsRatio) << endl;
-    
+
     //cout << "NewLogProb " << newlogprob << endl;
     //cout << "CurrentLogProb " << CurrentLogProb << endl;
     //cout << "Likelihood Ratio:" << exp(newlogprob - CurrentLogProb) << endl;
     double lpriorprob = logpriorprobRhoMean(RhoMean, factor*RhoMean, d_cmds["meanRhoMean"], d_cmds["sdRhoMean"]);
-   
+
     accept = (ranf()<(exp(logHastingsRatio+newlogprob - CurrentLogProb + lpriorprob))) ;
     if(accept){
       vecRho = newRho;
       vecRhoDeriv = newRhoDeriv;
       RhoMean *= factor;
       CurrentLogProb = newlogprob;
-    } 
+    }
   }
 
   //cout << "Final value of RhoMean = " << RhoMean << endl;
@@ -2367,7 +2369,7 @@ void ClassPop::ComputeRho(vector<double> & newright,vector<double> & newlambda,v
 double ClassPop::EffectiveLength(vector<double> & l,vector<double> & r,vector<double> & lambda)
 {
   double len = get_physical_length();
-  for(int h = 0; h < lambda.size(); h++){    
+  for(int h = 0; h < lambda.size(); h++){
     if(lambda[h]>0)
       len += (r[h] - l[h]) * (exp(lambda[h]) - 1);
   }
@@ -2384,7 +2386,7 @@ bool ClassPop::AcceptOrRejectSimpleHotspot(vector<double> & newleft, vector<doub
 
   double MINLAMBDA = -1;
   double PriorProbHotspot;
-  
+
   if(fixedpos)
     PriorProbHotspot = 0.5;
   else
@@ -2404,34 +2406,34 @@ bool ClassPop::AcceptOrRejectSimpleHotspot(vector<double> & newleft, vector<doub
   }
 
   if(accept){
-    RhoMean = newRhoMean; 
+    RhoMean = newRhoMean;
     ComputeRho(newright,newlambda,newleft);
-   
+
     // take prior on RhoMean into account
     lpriorratio = logpriorprobRhoMean(oldRhoMean, RhoMean, meanRhoMean, sdRhoMean);
-  
+
     for(int h = 0; h< lambda.size(); h++){
       if(newlambda[h] < 0)
-	lpriorratio += log((MAXLAMBDA/(-MINLAMBDA)) * (1-PriorProbHotspot)); 
+	lpriorratio += log((MAXLAMBDA/(-MINLAMBDA)) * (1-PriorProbHotspot));
       else
 	lpriorratio += log(PriorProbHotspot);
-    
+
       if(lambda[h] < 0)
 	lpriorratio -= log((MAXLAMBDA/(-MINLAMBDA)) * (1-PriorProbHotspot));
       else
 	lpriorratio -= log(PriorProbHotspot);
 
-    
+
       lpriorratio += -(0.5/(Hotspotsd* Hotspotsd)) * ((newright[h] - newleft[h])*(newright[h]- newleft[h]) - (right[h]-left[h])*(right[h]-left[h]));
-    
+
     }
-        
+
     vector<double> dummy;
     double newlogprob = logFDLSProb(vecRho, dummy, false);
 
     //cout << "Accept = " << exp(newlogprob - CurrentLogProb + lpriorratio) << endl;
     accept = (ranf()<exp(newlogprob - CurrentLogProb + lpriorratio)) ;
-    
+
     if(accept){
       right = newright;
       lambda = newlambda;
@@ -2453,14 +2455,14 @@ bool ClassPop::updateRhoSimpleHotspot(bool fixedpos, map<string,double> & d_cmds
 
   bool accept;
   double lpriorratio;
-  
+
   double MAXLAMBDA = d_cmds["maxlambda"]; //log(100.0);
   double Hotspotsd = d_cmds["Hotspotsd"]; //2000; // standard deviation of hotspot width
   double MinHotspotSize = d_cmds["MinHotspotSize"]; //200; // minimum size of hotspot
   double HOTSPOTRATE = d_cmds["Hotspotrate"]; //1.0/50000; // one hotspot per 50kb.
   double meanRhoMean = d_cmds["meanRhoMean"];
   double sdRhoMean = d_cmds["sdRhoMean"];
-  
+
   for(int h = 0; h<lambda.size(); h++){
 
     if(!fixedpos){ // update position of hotspot (left and right positions)
@@ -2472,31 +2474,31 @@ bool ClassPop::updateRhoSimpleHotspot(bool fixedpos, map<string,double> & d_cmds
 	  right[h] = center + 0.5*width;
 	} while( ((right[h] - left[h]) < MinHotspotSize) ); // || (left[h] < get_first_position()) || (right[h] > get_last_position()) );
       } else { // propose via MH random walk
-	
+
 	newleft[h] = left[h] + 1000 * (ranf()-0.5);
 	newlambda[h] = lambda[h];
 	newright[h] = right[h];
-	
+
 	AcceptOrRejectSimpleHotspot(newleft,newright,newlambda,fixedpos,MAXLAMBDA,Hotspotsd,MinHotspotSize,HOTSPOTRATE,meanRhoMean,sdRhoMean);
-	
-	
+
+
 	newleft[h] = left[h];
 	newlambda[h]= lambda[h];
 	newright[h] = right[h] + 1000 * (ranf()-.5);
-	
+
 	AcceptOrRejectSimpleHotspot(newleft,newright,newlambda,fixedpos,MAXLAMBDA,Hotspotsd,MinHotspotSize,HOTSPOTRATE,meanRhoMean,sdRhoMean);
       }
     }
-  
+
 
     // propose new value for lambda
 
     newleft[h] = left[h];
     newlambda[h] = lambda[h] + 2 * (ranf()-.5);
     newright[h] = right[h];
-    
+
     AcceptOrRejectSimpleHotspot(newleft,newright,newlambda,fixedpos,MAXLAMBDA,Hotspotsd,MinHotspotSize,HOTSPOTRATE,meanRhoMean,sdRhoMean);
-  
+
   }
   return 0;
 
@@ -2505,30 +2507,30 @@ bool ClassPop::updateRhoSimpleHotspot(bool fixedpos, map<string,double> & d_cmds
 
 // propose change to RhoMult, and accept or reject it
 // using MH Langevin algorithm on log(rhomult).
-// parameterization of rho is 
+// parameterization of rho is
 // log(rho(i)) = log(RhoMean) + log(rhomult(i))
 // or rho(i) = RhoMean * rhomult(i)
 //
 // sigma is sd of proposal
 //
 bool ClassPop::updateRhoMultLangevin(double sigma)
-{ 
+{
 // set up newRho to be langevin factor * rwfactor * old rho values
   vector<double> newRho = vecRho;
   vector<double> newRhoDeriv = vecRhoDeriv;
   vector<double> factor(Nloci-1);
- 
-// prob of going from logRhoMult to NewlogRhoMult, and back 
+
+// prob of going from logRhoMult to NewlogRhoMult, and back
   double logforwardsprob = 0;
   double logbackwardsprob = 0;
   double logpriorratio =0;
   bool accept;
 
   for(int locus = 0; locus<(Nloci-1); locus++){
-      // compute derivative of loglikelihood+log(prior) with respect to 
-      //Omegai = log(RhoMult[i])  
+      // compute derivative of loglikelihood+log(prior) with respect to
+      //Omegai = log(RhoMult[i])
     double deriv = vecRho[locus] * vecRhoDeriv[locus] - log(RhoMult[locus])/(RHOMULTSIGMA*RHOMULTSIGMA);
-      
+
     //cout << "deriv = " << deriv << endl;
 
     double epsilon = rnorm(0,sigma);
@@ -2536,7 +2538,7 @@ bool ClassPop::updateRhoMultLangevin(double sigma)
 
     factor[locus] = exp(0.5*sigma*sigma*deriv + epsilon );
     logpriorratio += logdnorm( log(factor[locus])+log(RhoMult[locus]), 0, RHOMULTSIGMA) - logdnorm(log(RhoMult[locus]), 0, RHOMULTSIGMA);
-    
+
     newRho[locus] *= factor[locus];
   }
 
@@ -2544,7 +2546,7 @@ bool ClassPop::updateRhoMultLangevin(double sigma)
 
   // compute backwards probabilities
   for(int locus = 0; locus<(Nloci-1); locus++){
-    // compute new derivative of loglikelihood +logprior 
+    // compute new derivative of loglikelihood +logprior
     // with respect to OmegaMean = log(RhoMean)
     double newderiv = newRho[locus] * newRhoDeriv[locus] - log(RhoMult[locus]*factor[locus])/(RHOMULTSIGMA*RHOMULTSIGMA);
     double backwardsepsilon = -log(factor[locus]) - 0.5*sigma*sigma*newderiv;
@@ -2568,7 +2570,7 @@ bool ClassPop::updateRhoMultLangevin(double sigma)
     }
     CurrentLogProb = newlogprob;
   }
- 
+
   //  for(int locus = 0; locus<(Nloci-1); locus++){
 //      cout << RhoMult[locus] << " ";
 //    }
@@ -2648,7 +2650,7 @@ bool ClassPop::updateRhoMultRandomWalk(double sigma)
   bool accept;
 
   int locus = 0;
-  
+
   for(vector<double>::iterator r = newRho.begin(); r!=newRho.end(); r++)
   {
     rwfactor[locus] = exp( rnorm(0,sigma) );
@@ -2659,14 +2661,14 @@ bool ClassPop::updateRhoMultRandomWalk(double sigma)
 
   vector<double> dummy;
   double newlogprob = logFDLSProb(newRho,dummy,false);
-  
+
   accept = (ranf()<exp(logpriorratio + newlogprob - CurrentLogProb)) ;
   if(accept){
     vecRho = newRho;
     for(int locus = 0; locus<RhoMult.size(); locus++)
       RhoMult[locus] *= rwfactor[locus];
     CurrentLogProb = newlogprob;
-  } 
+  }
 
  //   cout << "RhoMult: ";
 //    for(it locus = 0; locus<RhoMult.size(); locus++)
@@ -2687,12 +2689,12 @@ void ClassPop::MHUpdateOrder()
   // propose switching two chosen at random
   int i = (int) (NindToUseForRho * ranf());
   int j = (int) (NindToUseForRho * ranf());
-  
+
   // for(int k=0; k< order.size(); k++){
 //     cout << order[k] << ",";
 //   }
 //   cout << endl;
- 
+
   vector<int> oldorder(order);
   order[i] = oldorder[j];
   order[j] = oldorder[i];
@@ -2745,30 +2747,30 @@ void ClassPop::UpdateRho(double sigmaRhoMean, double sigmaRhoMult, int & naccept
   if(RhoMean>0){
 
     switch(RecomModel){
-      
-    case 0: 
+
+    case 0:
       nacceptRhoMean += updateRhoMeanLangevin( sigmaRhoMean, d_cmds );
       nacceptRhoMult += updateRhoMultLangevin(sigmaRhoMult);
       break;
-      
-    case 1:  
+
+    case 1:
       nacceptRhoMean += updateRhoMeanRandomWalk( sigmaRhoMean, d_cmds );
       nacceptRhoMult += updateRhoSimpleHotspot ( false, d_cmds );
       break;
-      
-    case 2:  
+
+    case 2:
       nacceptRhoMean += updateRhoMeanRandomWalk( sigmaRhoMean, d_cmds );
       nacceptRhoMult += updateRhoSimpleHotspot ( true, d_cmds ); // fixed hotspot position
       break;
-      
+
     case 3:  // uniform recom rate
       nacceptRhoMean += updateRhoMeanRandomWalk( sigmaRhoMean, d_cmds );
       break;
-      
+
     default: break;
     }
   }
-  
+
 }
 
 // tune sigmaRhoMean and sigmaRhoMult so that acceptance probs not too small
@@ -2777,15 +2779,15 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
 
   int nacceptRhoMean=0;
   int nacceptRhoMult=0;
-  int Nrep = 10;  
+  int Nrep = 10;
   int ntry = 0;
 
-  while((nacceptRhoMean*1.0/Nrep > 0.7 || 
-	nacceptRhoMean*1.0/Nrep < 0.3 || 
-	nacceptRhoMult*1.0/Nrep > 0.7 || 
+  while((nacceptRhoMean*1.0/Nrep > 0.7 ||
+	nacceptRhoMean*1.0/Nrep < 0.3 ||
+	nacceptRhoMult*1.0/Nrep > 0.7 ||
 	nacceptRhoMult*1.0/Nrep < 0.3) && (ntry++ < 100) ){
 
-  
+
     nacceptRhoMean=0;
     nacceptRhoMult=0;
 
@@ -2797,27 +2799,27 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
 	OutputCurrentLogProb(cout);
       }
     }
- 
+
     if(verbose){
       cout << "Acceptance Rate for RhoMean: " << nacceptRhoMean*1.0/Nrep << endl;
-      cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/Nrep << endl; 
+      cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/Nrep << endl;
       cout << "SigmaMean = " << sigmaRhoMean << endl;
       cout << "SigmaMult = " << sigmaRhoMult << endl;
       cout << "RhoMean = " << RhoMean << endl;
-    }	
+    }
 
     if(nacceptRhoMean*1.0/Nrep < 0.3 ) // tune sigmaRhoMean
       sigmaRhoMean /=(1+ranf());
     if(nacceptRhoMean*1.0/Nrep > 0.7 )
       sigmaRhoMean *=(1+ranf());
-    
+
     if(nacceptRhoMult*1.0/Nrep < 0.3 ) // tune sigmaRhoMult
       sigmaRhoMult /=(1+ranf());
     if(nacceptRhoMult*1.0/Nrep > 0.7 )
-      sigmaRhoMult *=(1+ranf()); 
-    
-   
-   
+      sigmaRhoMult *=(1+ranf());
+
+
+
   }
 
   if(ntry>100)
@@ -2825,9 +2827,9 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
 
 
   // for(int iter=0; iter<(2*Niter); iter++){
-   
+
 //     MHUpdateOrder(); //RandomiseOrder(); ComputeRhoDerivAndCurrentLogProb();
-    
+
 //     for(int count =0; count < Nrep; count++){
 //       //TestComputeRhoDerivNaively();
 //       UpdateRho(sigmaRhoMean,sigmaRhoMult,nacceptRhoMean, nacceptRhoMult, d_cmds);
@@ -2836,11 +2838,11 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
 // 	OutputCurrentLogProb(cout);
 //       }
 //     }
- 
+
 //     if(iter < Niter){
 
 //       if(verbose){
-// 	cout << "nacceptRhoMean = " << nacceptRhoMean << endl; 
+// 	cout << "nacceptRhoMean = " << nacceptRhoMean << endl;
 // 	cout << "sigmaRhoMean = " << sigmaRhoMean << endl;
 //       }
 
@@ -2848,7 +2850,7 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
 // 	sigmaRhoMean /=(1+ranf());
 //       if(nacceptRhoMean*1.0/Nrep > 0.7 )
 // 	sigmaRhoMean *=(1+ranf());
-      
+
 //       if(nacceptRhoMult*1.0/Nrep < 0.3 ) // tune sigmaRhoMult
 // 	sigmaRhoMult /=(1+ranf());
 //       if(nacceptRhoMult*1.0/Nrep > 0.7 )
@@ -2863,22 +2865,22 @@ double ClassPop::InferRho(int Niter, double & sigmaRhoMean, double & sigmaRhoMul
   //nacceptRhoMult = 0;
   //}
   //}
-  
+
   if(verbose){
     cout << "Acceptance Rate for RhoMean: " << nacceptRhoMean*1.0/Nrep << endl;
-    cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/Nrep << endl; 
+    cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/Nrep << endl;
     cout << "SigmaMean = " << sigmaRhoMean << endl;
     cout << "SigmaMult = " << sigmaRhoMult << endl;
     cout << "RhoMean = " << RhoMean << endl;
   }
   return RhoMean;
-    
+
 }
-    
+
 // do the same as HapListMCMCResolvePhaseRemove,
-// but remove buddies (= partners of parents in trios) at same time, 
+// but remove buddies (= partners of parents in trios) at same time,
 // and use the buddies haplotypes when updating individual.
- 
+
 double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter, int Nthin, int Nburn, map<string,double> & d_cmds, string filename, bool collectdata)
 {
 
@@ -2886,7 +2888,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   // First, when list is initialised (before calling this fn)
   // all possibilities for SNPs are added. (for Multiallelics,
   // all possibilities based on current imputed alleles are added).
-  // Second, when list of possible pairs is made up, all pairs 
+  // Second, when list of possible pairs is made up, all pairs
   // consistent with observed alleles are added.
 
   static int firsttime = true;
@@ -2895,18 +2897,18 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   int outputsample = cmds["outputsample"];
   int method = cmds["method"];
   int nperm = cmds["nperm"];
-  
+
   RecomModel = cmds["RecomModel"];
- 
+
   int testcasecontrol = (nperm>0);
-  
+
   double rho = d_cmds["rhostart"];
   double betastart = d_cmds["betastart"];
   double betaend = d_cmds["betaend"];
   double minfreqpairoutput = d_cmds["output_minfreq"]; //min prob that a particular
   // pair has to have before being output as a possible pair
   double minfreqpair = d_cmds["minfreq"];
-  
+
   if(collectdata){
     Niter *= cmds["finalrepmult"];
     Nthin *= cmds["finalrepmult"];
@@ -2918,9 +2920,9 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       method = 'R';
     else
       method = 'S';
-  
+
   cout << "Method = " << (char) method << endl;
-  
+
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
@@ -2934,19 +2936,19 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   ostringstream hotfile{};
 #else
   ofstream recomfile;
-  ofstream monitorfile; 
+  ofstream monitorfile;
   ofstream samplefile; // sample from posterior
-  ofstream pairsfile; // list of high probability haplotype pairs 
+  ofstream pairsfile; // list of high probability haplotype pairs
                       //for each individual
   // ofstream finalfile; // output final haplist used
   ofstream signiffile; // output final haplist used
   ofstream hotfile; // hotspot info
-  
+
   if(collectdata){
     string recomfilename = filename+"_recom";
     string monitorfilename = filename+"_monitor";
     string  hotfilename = filename +"_hotspot";
-      
+
 
        // this to make sure results for multiple datasets are sent to a single file
     if(cmds["NDatasets"]>1 && !firsttime){
@@ -2969,7 +2971,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       }
       firsttime = false;
     }
-    
+
     string pairsfilename = filename+"_pairs";
     pairsfile.open(pairsfilename.c_str());
     assure (pairsfile, pairsfilename);
@@ -2977,7 +2979,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //     string finalfilename = filename + "_final";
 //     finalfile.open(finalfilename.c_str());
 //     assure (finalfile, finalfilename);
-    
+
     if(testcasecontrol){
       string signiffilename = filename + "_signif";
       //if(cmds["testing"])
@@ -2986,29 +2988,29 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       signiffile.open(signiffilename.c_str());
       assure (signiffile, signiffilename);
     }
-    
+
   }
 
   if(outputsample && collectdata){
     string samplefilename = filename+"_sample";
-    samplefile.open(samplefilename.c_str()); 
+    samplefile.open(samplefilename.c_str());
     assure ( samplefile, samplefilename);
   }
 #endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop,Nind); // start with list of all haplotypes in current guess
-    
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
   bool found;
 
   // Set up an index of the pairs in list that can make up each individual.
-  // index[ind] contains a vector of  pairs of pointers to haps in the list 
+  // index[ind] contains a vector of  pairs of pointers to haps in the list
   // that can make up individual ind
-  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind); 
-  haplist.MakePairsIndex(index,pop,true, false); 
+  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind);
+  haplist.MakePairsIndex(index,pop,true, false);
   // first bool (true) also removes those haps from list
   // that cannot make up any individuals in pop
   // second bool (false) means that missing positions are not
@@ -3019,14 +3021,14 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     for(int ind = 0; ind< Nind; ind++){
       cout << "Individual:" << ind << endl;
       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
-	(*hpair).first->first.print_haplotype(cout,coding);    
+	(*hpair).first->first.print_haplotype(cout,coding);
 	cout << ",";
-	(*hpair).second->first.print_haplotype(cout,coding); 
+	(*hpair).second->first.print_haplotype(cout,coding);
 	cout << endl;
       }
     }
   }
- 
+
   vector < vector< double > > phaseprobs(Nind); // set up a matrix for storing the prob of each phase for each ind
   for(int ind = 0; ind< Nind; ind++){
     phaseprobs[ind] = vector<double>(index[ind].size(),0.0);
@@ -3035,7 +3037,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   int nchr = Nind+Nind;
   int nchrminus2 = nchr-2;
-     
+
   double removeamount = 1.0;
   double addamount = 1.0;
 
@@ -3055,7 +3057,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   vector< vector<double> > childprob(Nind);
   // set up a probability of child's data for each individual pair
-  vector<double> totalp(Nind,0); 
+  vector<double> totalp(Nind,0);
   for(int ind = 0; ind<Nind;ind++){
     for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
       for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
@@ -3066,21 +3068,21 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    + pop[childindex[ind]].ObservedDataProbGivenParents((*hpair).second->first,(*hpair).first->first,  (*hpair2).second->first, (*hpair2).first->first, pop[ind].get_recom(), pop[*b].get_recom());
 	  childprob[ind].push_back(pc);
 	  totalp[ind] += (pc>0);
-	
+
 	  if(verbose){
 	    cout << "Individual:" << ind << endl;
-	    (*hpair).first->first.print_haplotype(cout,coding);    
+	    (*hpair).first->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair).second->first.print_haplotype(cout,coding); 
+	    (*hpair).second->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair2).first->first.print_haplotype(cout,coding);     
+	    (*hpair2).first->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair2).second->first.print_haplotype(cout,coding);  
+	    (*hpair2).second->first.print_haplotype(cout,coding);
 	    cout << endl;
 	    cout << "Childprob:" <<  pc << endl;
       	  }
 
-	  
+
 	}
       }
     }
@@ -3097,40 +3099,40 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   }
 
   for(int iter = 0; iter < Nburn; iter++){
-    
+
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
+
       if((iter == Nburn/2)){
 	cerr << endl;
 	cerr << "Estimating recom rates" << endl;
 	if(verbose)
 	  cout << "Estimating recom rates" << endl;
-	InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds); 
+	InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds);
 	cerr << "Continuing Burn-in" << endl;
       }
-              
+
       if(iter > Nburn/2){
 	UpdateRho(SigmaMean,SigmaMult,nacceptRhoMean, nacceptRhoMult, d_cmds);
-	
+
 	if(verbose){
 	  OutputRho(cout);
 	  OutputCurrentLogProb(cout);
 	}
       }
- 
+
     } else {
       RandomiseOrder();
     }
-    
+
     loglik = 0;
 
     //double DPRIOR = (betaend/nchr) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend)/nchr);
-    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));    
-    
-    for(int i = 0; i<Nind; i++){    
-      int ind = order[i];     
+    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));
+
+    for(int i = 0; i<Nind; i++){
+      int ind = order[i];
       haplist.SoftRemove(pop[ind],removeamount);
       for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
 	haplist.SoftRemove(pop[*b],removeamount);
@@ -3149,7 +3151,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       // rather than multiplying probs (adding gives more weight to
       // configurations where only one of the 2 haps has high prob
       double prob1, prob2;
-     
+
       //if(index[ind].size()>1){
 	vector<double>::iterator  pc = childprob[ind].begin();
 	for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
@@ -3171,14 +3173,14 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	      pc++;
 	    }
 	  }
-	
+
 	  prob1 = 0;
 	  prob2 = 0;
 	  if(sumchildlike>0){
 	    prob1 = haplist.CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // pop[ind].get_nmissing() as last param would just check missing positions
-	    prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // 
+	    prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); //
 	  }
-	  
+
 	  for(int i = 0; i< buddyprob1.size(); i++){
 	    if(addprobs)
 	      p = childlike[i] * (prob1 + prob2 + buddyprob1[i] + buddyprob2[i]);
@@ -3187,16 +3189,16 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    Prob.push_back(p);
 	    sumprob += p;
 	  }
-	
-	  
-#ifdef DEBUG       
+
+
+#ifdef DEBUG
 	  ((*hpair).first->first).print_haplotype(cout,coding);
 	cout << ",";
 	((*hpair).second->first).print_haplotype(cout,coding);
 	cout << ":" << p << endl;
 #endif
 	}
-	//}	
+	//}
       // else{
 // 	Prob.push_back(1);
 // 	sumprob = 1;
@@ -3205,13 +3207,13 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
 	//SOME OTHER PRIOR ANNEALING SCHEMES WE TRIED
       // original linear prior annealing (adding DPRIOR to p)
-      //double p = (CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength()) * 
+      //double p = (CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength()) *
       //(CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength());
-	
+
       // "powered" version of prior annealing, raising p to power DPRIOR
       //double p = exp(DPRIOR * log(CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)*
       //CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0)));
-      
+
       // store phase probabilities in phaseprobs -only necessary in order to do the later pruning...
       //if(index[ind].size()>1){
 	vector<double>::iterator probpointer = Prob.begin();
@@ -3219,7 +3221,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	  for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
 	    for (vector<double>::iterator phase2 = phaseprobs[*b].begin(); phase2 != phaseprobs[*b].end(); phase2++){
 	      *phase1 += 0.5*(1.0/Nburn)*(*probpointer/sumprob);
-	      *phase2 += 0.5*(1.0/Nburn)*(*probpointer/sumprob);	    
+	      *phase2 += 0.5*(1.0/Nburn)*(*probpointer/sumprob);
 	      probpointer++;
 	    }
 	  }
@@ -3232,14 +3234,14 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       int choice = rint2(Prob,sumprob);
       loglik += log(sumprob);
       //loglik += log(Prob[choice]); // a different version of the pseudologlik
-      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair1 = index[ind].begin()+ choice / index[buddy[ind][0]].size();	
-      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair2 = index[buddy[ind][0]].begin() + choice % index[buddy[ind][0]].size();	
-      
-      
+      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair1 = index[ind].begin()+ choice / index[buddy[ind][0]].size();
+      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair2 = index[buddy[ind][0]].begin() + choice % index[buddy[ind][0]].size();
+
+
       pop[buddy[ind][0]].update_haplotypes((*sampledpair2).first->first,(*sampledpair2).second->first);
       pop[ind].update_haplotypes((*sampledpair1).first->first,(*sampledpair1).second->first);
 
-      //HapListImputeMissing(ind);  
+      //HapListImputeMissing(ind);
       //HapListImputeMissing(buddy[ind][0]);
 
       for(int chr = 0; chr <2 ; chr++){
@@ -3252,10 +3254,10 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	  haplist.ExtendPairsIndex(newrecord, index[ind], phaseprobs[ind], pop[ind], true);
 
 	if(isnewhap)
-	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);   
+	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
 	// true param says to check missing positions
       }
-      
+
       // update buddys
       for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
 	for(int chr = 0; chr <2 ; chr++){
@@ -3266,41 +3268,41 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	   // that wasn't on its list of allowed pairs
 	   if( pop[*b].NMissingLoci() > 0)
 	     haplist.ExtendPairsIndex(newrecord, index[*b], phaseprobs[*b], pop[*b], true);
-	   
+
 	   if(isnewhap)
-	     haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);   
+	     haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
 	   // true param says to check missing positions
 	 }
       }
-      
 
-    
+
+
 #ifdef DEBUG
       cout << "Adding ind:" << endl;
       haplist.Output(cout,coding);
 #endif
-      
+
     }
 
     cerr << setw(4) << (int) ((iter+1)*100.0/Nburn) << "% done\033[A" << endl;
-    //cout << "Log Likelihood: " << loglik << endl;    
+    //cout << "Log Likelihood: " << loglik << endl;
   }
-  
+
   if(verbose){
       cout << "Acceptance Rate for RhoMean, burnin: " << nacceptRhoMean*2.0/(Nburn) << endl;
-      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*2.0/(Nburn) << endl; 
+      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*2.0/(Nburn) << endl;
       cout << "SigmaMean = " << SigmaMean << endl;
       cout << "SigmaMult = " << SigmaMult << endl;
   }
 
-  
+
   // after burn-in, if necessary get better estimate of rho and appropriate sigmas
   if(nacceptRhoMean *2.0/Nburn < 0.1 || nacceptRhoMean *2.0/Nburn >0.9 || nacceptRhoMult *2.0/Nburn < 0.1 || nacceptRhoMult *2.0/Nburn >0.9){
     if(method == 'R' && (RhoMean >0)){
       cerr << "Re-Estimating recom rates" << endl;
       if(verbose)
 	cout << "Estimating recom rates" << endl;
-      InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds); 
+      InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds);
     }
   }
 
@@ -3309,7 +3311,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   // actual iterations
   double meanloglik = 0;
 
-  // set up vecpermcc as vector of permutations of casecontrol labels    
+  // set up vecpermcc as vector of permutations of casecontrol labels
   vector<double> meanpermloglik(nperm , 0); // mean log lik for controls
 
   vector< vector<int> > vecpermcc;
@@ -3321,7 +3323,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     }
   }
 
-  
+
   // Here we prune index to remove very unlikely hap pairs
   // (also sets phaseprobs to be 0)
   haplist.PrunePairsIndex(index, phaseprobs,pop,minfreqpair*0.5);
@@ -3338,19 +3340,19 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    + pop[childindex[ind]].ObservedDataProbGivenParents((*hpair).second->first,(*hpair).first->first,  (*hpair2).second->first, (*hpair2).first->first, pop[ind].get_recom(), pop[*b].get_recom());
 	  childprob[ind].push_back(pc);
 	  totalp[ind] += (pc>0);
-	
+
 
 	  if(verbose){
 	    cout << "After pruning" << endl;
 	    cout << "Individual:" << ind << endl;
 	    cout << "Buddy: " << buddy[ind][0] << endl;
-	    (*hpair).first->first.print_haplotype(cout,coding);    
+	    (*hpair).first->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair).second->first.print_haplotype(cout,coding); 
+	    (*hpair).second->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair2).first->first.print_haplotype(cout,coding);     
+	    (*hpair2).first->first.print_haplotype(cout,coding);
 	    cout << endl;
-	    (*hpair2).second->first.print_haplotype(cout,coding);  
+	    (*hpair2).second->first.print_haplotype(cout,coding);
 	    cout << endl;
 	    cout << "Childprob:" <<  pc << endl;
 	  }
@@ -3373,9 +3375,9 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   for(int ind = 0; ind<Nind; ind++)
     if(casecontrol[ind]>ngroups)
       ngroups = casecontrol[ind];
-  ngroups++;    
+  ngroups++;
   haplist.SetupGroupFreqs(ngroups);
-  
+
   // set up group size vector
   groupsize = vector<int>(ngroups,0);
   for(int ind = 0; ind<Nind; ind++)
@@ -3383,10 +3385,10 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
 
   cerr << "Performing Main iterations" << endl;
-  cerr << setw(4) << 0 << "% done\033[A" << endl; 
-   
+  cerr << setw(4) << 0 << "% done\033[A" << endl;
+
   //int NumberOfSqPseudoCountUpdates = 0;
-  
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
@@ -3396,12 +3398,12 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   for(int iter = 0; iter < Niter; iter++){
     loglik = 0;
-      
+
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
-      
+
+
       UpdateRho(SigmaMean,SigmaMult, nacceptRhoMean, nacceptRhoMult, d_cmds);
       if(verbose){
 	OutputRho(cout);
@@ -3418,13 +3420,13 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
     if(testcasecontrol && collectdata){
       for(int i = 0; i< nperm; i++){
-	meanpermloglik[i] += 
-	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) + 
+	meanpermloglik[i] +=
+	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) +
 	  logProb( method, vecRho, vecpermcc[i], 1.0, 1);
 	// add likelihoods for group 0 and group 1
       }
     }
-   
+
     for(int i = 0; i<Nind; i++){
       int ind = order[i];
       //cout << "ind = " << ind << endl;
@@ -3464,7 +3466,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 		  if(pop[*b].n_missing(locus) == 1)
 		    if(((*hpair2).first->first).get_allele(locus)!=((*hpair2).second->first).get_allele(locus))
 		      p *= 0.5;
-		}  
+		}
 	      } else{
 		buddyprob1.push_back(0);
 		buddyprob2.push_back(0);
@@ -3474,14 +3476,14 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	      pc++;
 	    }
 	  }
-	
+
 	  prob1 = 0;
 	  prob2 = 0;
 	  if(sumchildlike>0){
 	    prob1 = haplist.CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // pop[ind].get_nmissing() as last param would just check missing positions
-	    prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // 
+	    prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); //
 	  }
-	  
+
 	  for(int i = 0; i< buddyprob1.size(); i++){
 	    //cout << "i= " << i << endl;
 	    double factor = (2-((*hpair).first == (*hpair).second)); // take acount of factor of 2 for case where there are missing positions
@@ -3495,38 +3497,38 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    }
 	    Prob.push_back(p);
 	    sumprob += p;
-#ifdef DEBUG       
+#ifdef DEBUG
 	    ((*hpair).first->first).print_haplotype(cout,coding);
 	    cout << ",";
 	    ((*hpair).second->first).print_haplotype(cout,coding);
-	  
+
 	    //cout << ",";
 	    //((*hpair2).first->first).print_haplotype(cout,coding);
 	    //cout << ",";
 	    //((*hpair2).second->first).print_haplotype(cout,coding);
-	    
+
 	    cout << ":" << prob1 << "," << prob2 << "," << childlike[i] << "," << buddyprob1[i] << "," << buddyprob2[i]  << endl;
-	    
+
 #endif
-	  
-	  }	  
+
+	  }
 	}
-      // }	
+      // }
 //       else{
 // 	Prob.push_back(1);
 // 	sumprob = 1;
 //       }
 
       int probpos = 0;
-   
-      // store phase probabilities in phaseprobs 
+
+      // store phase probabilities in phaseprobs
       //if(index[ind].size()>1){
 	vector<double>::iterator probpointer = Prob.begin();
 	for (vector<double>::iterator phase1 = phaseprobs[ind].begin(); phase1 != phaseprobs[ind].end(); phase1++){
 	  for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
 	    for (vector<double>::iterator phase2 = phaseprobs[*b].begin(); phase2 != phaseprobs[*b].end(); phase2++){
 	      *phase1 += (1.0/Niter)*(*probpointer/sumprob);
-	      //*phase2 += (1.0/Niter)*(*probpointer/sumprob);	    
+	      //*phase2 += (1.0/Niter)*(*probpointer/sumprob);
 	      probpointer++;
 	    }
 	  }
@@ -3535,18 +3537,18 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //       else{
 // 	phaseprobs[ind][0] = 1;
 //       }
-      
+
       int choice = rint2(Prob,sumprob);
       loglik += log(sumprob);
       //loglik += log(Prob[choice]); // a different version of the pseudologlik
-      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair1 = index[ind].begin()+ choice / index[buddy[ind][0]].size();	
-      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair2 = index[buddy[ind][0]].begin() + choice % index[buddy[ind][0]].size();	
-      
-      
+      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair1 = index[ind].begin()+ choice / index[buddy[ind][0]].size();
+      vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair2 = index[buddy[ind][0]].begin() + choice % index[buddy[ind][0]].size();
+
+
       // update buddy's haplotypes
 
       pop[buddy[ind][0]].update_haplotypes((*sampledpair2).first->first,(*sampledpair2).second->first);
-      
+
       for(vector<int>::iterator b=buddy[ind].begin(); b!=buddy[ind].end(); b++){
 	for(int chr = 0; chr <2 ; chr++){
 	  bool isnewhap;
@@ -3556,9 +3558,9 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	   // that wasn't on its list of allowed pairs
 	   if( pop[*b].NMissingLoci() > 0)
 	     haplist.ExtendPairsIndex(newrecord, index[*b], phaseprobs[*b], pop[*b], true);
-	   
+
 	   if(isnewhap)
-	     haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);   
+	     haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
 	   // true param says to check missing positions
 	}
       }
@@ -3572,49 +3574,49 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	if(ngroups>1)
 	  grouphapcount = (double) GetGroupCount(h->first,casecontrol[ind],ind);
 	int groupn = groupsize[casecontrol[ind]];
-	
+
 	//cout << "nchr = " << nchr << endl;
 	//cout << "hapcount = " << hapcount << endl;
-	
-	h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)	 
-	
+
+	h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)
+
 	h->second.GroupFreq[casecontrol[ind]] += (grouphapcount / groupn);
-	
+
 	if(collectdata){
 	  h->second.SqPseudoCount += (hapcount * hapcount)/(nchr*nchr);
 	  h->second.GroupFreqSq[casecontrol[ind]] += (grouphapcount * grouphapcount)/(groupn*groupn) ;
 	}
-	
+
 	probpos = 0;
 	for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 	  for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair2 = index[buddy[ind][0]].begin(); hpair2 != index[buddy[ind][0]].end(); hpair2++){
-	 
+
 	    int indicator1 = (*hpair).first->first == (h->first);
 	    int indicator2 = (*hpair).second->first == (h->first);
-	    
+
 	    //cout << "Prob=" << Prob[probpos]/sumprob << endl;
 	    //cout << "tot = " << indicator1 + indicator2 << endl;
 	    h->second.PseudoCount += (Prob[probpos]/sumprob) * (1.0/nchr) * (indicator1 + indicator2);
 	    h->second.GroupFreq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/groupn) * (indicator1 + indicator2);
-	    
+
 	    if(collectdata){
 	      h->second.SqPseudoCount += (Prob[probpos]/sumprob) * (1.0/(nchr*nchr)) * (indicator1 + indicator2) *
 		(indicator1 + indicator2 + 2*hapcount);
 	      h->second.GroupFreqSq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/(groupn*groupn)) * (indicator1 + indicator2) *
-		(indicator1 + indicator2 + 2*grouphapcount);	    
+		(indicator1 + indicator2 + 2*grouphapcount);
 	    }
 	    probpos++;
-	  } 
+	  }
 	}
       }
-      
+
       pop[ind].update_haplotypes((*sampledpair1).first->first,(*sampledpair1).second->first);
-     
+
       // this bit allows missing positions to be reconstructed
       // without reference to the HapList;
-      // 
+      //
       // is not quite correct for case where one allele may be missing
-      // 
+      //
       //HapListImputeMissing(ind);
 //        // add new hap to list; extend Pairs index if necessary
       for(int chr = 0; chr <2 ; chr++){
@@ -3628,36 +3630,36 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	if(isnewhap)
 	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
       }
-      
-     
-      
+
+
+
 
 #ifdef DEBUG
       cout << "Adding ind:" << endl;
       haplist.Output(cout,coding);
 #endif
-      
-      //pop[ind].UpdateCounts(); 
+
+      //pop[ind].UpdateCounts();
 
     }
-   
+
     if(collectdata){
-      monitorfile << loglik << " " << CurrentLogProb <<  endl; 
+      monitorfile << loglik << " " << CurrentLogProb <<  endl;
       if(outputsample)
 	output(samplefile, true, true);
     }
-    
-    cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl; 
+
+    cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl;
     meanloglik +=loglik;
   }
-  
+
   if(verbose){
       cout << "Acceptance Rate for RhoMean, main: " << nacceptRhoMean*1.0/(Niter) << endl;
-      cout << "Acceptance Rate for RhoMult, main: " << nacceptRhoMult*1.0/(Niter) << endl; 
+      cout << "Acceptance Rate for RhoMult, main: " << nacceptRhoMult*1.0/(Niter) << endl;
       cout << "SigmaMean = " << SigmaMean << endl;
       cout << "SigmaMult = " << SigmaMult << endl;
   }
-  
+
   vecpermcc = vector<vector<int> > (0);
 
   if(testcasecontrol && collectdata){
@@ -3675,14 +3677,14 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 // copy PsedoCounts (posterior means of Freqs) to Freqs (suitably normalised)
   haplist.CopyPseudoCountsToFreqs();
   haplist.NormaliseFreqs();
-  
+
   if(collectdata){
-    haplist.NormaliseSqPseudoCounts(Nind * Niter); 
+    haplist.NormaliseSqPseudoCounts(Nind * Niter);
 
     haplist.NormaliseGroupFreqs();
 
     cerr << "Writing output to files " << endl;
-    // Output list of plausible pairs for each individual 
+    // Output list of plausible pairs for each individual
     for(int ind = 0; ind<Nind; ind++){
       pairsfile << "IND: " << pop[ind].get_id() << endl;
       for(int j = 0; j< index[ind].size(); j++){
@@ -3691,26 +3693,26 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	  pairsfile << " , ";
 	  pairsfile.setf(ios::fixed);
 	  pairsfile.setf(ios::showpoint);
-	  pairsfile.precision(3); 
+	  pairsfile.precision(3);
 	  pairsfile << phaseprobs[ind][j] << endl;
 	}
       }
     }
-    
+
     // Output final haplist used
-    
+
     // haplist.Dump(finalfile);
 
     haplist.SetBestGuesses(pop,index,phaseprobs); // set all individuals in pop to their best guesses
-    
+
     cerr << "Producing Summary, please wait " << endl;
     // each element of this vector is a summary for a single individual
     // the false at the end forces it to produce a single summary with no splits
     vector<Summary> summary = haplist.ProduceSummary(index,phaseprobs,0,get_nloci(),pop,false);
-    
+
     // for(vector<Summary>::iterator s = summary.begin(); s<summary.end(); s++)
     //  s->Output(cout, coding);
-    
+
     TransferCounts(summary);
 
     // produce separate lists of freqs for cases and controls
@@ -3719,13 +3721,13 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //       if(casecontrol[ind]>ngroups)
 // 	ngroups = casecontrol[ind];
 //     ngroups++;
-    
+
 //     haplist.SetupGroupFreqs(ngroups);
 //     for(int ind = 0; ind<Nind; ind++){
 //       int probpos = 0;
-//       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){  
+//       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 // 	haplist.haplist[(*hpair).first->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);
-// 	haplist.haplist[(*hpair).second->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);	  
+// 	haplist.haplist[(*hpair).second->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);
 // 	probpos++;
 //       }
 //     }
@@ -3752,27 +3754,27 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   // First, when list is initialised (before calling this fn)
   // all possibilities for SNPs are added. (for Multiallelics,
   // all possibilities based on current imputed alleles are added).
-  // Second, when list of possible pairs is made up, all pairs 
+  // Second, when list of possible pairs is made up, all pairs
   // consistent with current imputed alleles are added.
 
   static int firsttime = true;
-  
+
   int verbose = cmds["verbose"];
   int outputsample = cmds["outputsample"];
   int method = cmds["method"];
   int nperm = cmds["nperm"];
-  
+
   RecomModel = cmds["RecomModel"];
- 
+
   int testcasecontrol = (nperm>0);
-  
+
   double rho = d_cmds["rhostart"];
   double betastart = d_cmds["betastart"];
   double betaend = d_cmds["betaend"];
   double minfreqpairoutput = d_cmds["output_minfreq"]; //min prob that a particular
   // pair has to have before being output as a possible pair
   double minfreqpair = d_cmds["minfreq"];
-  
+
   if(collectdata){
     Niter *= cmds["finalrepmult"];
     Nthin *= cmds["finalrepmult"];
@@ -3784,9 +3786,9 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       method = 'R';
     else
       method = 'S';
-  
+
   cout << "Method = " << (char) method << endl;
-  
+
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
@@ -3800,19 +3802,19 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   ostringstream hotfile{};
 #else
   ofstream recomfile;
-  ofstream monitorfile; 
+  ofstream monitorfile;
   ofstream samplefile; // sample from posterior
-  ofstream pairsfile; // list of high probability haplotype pairs 
+  ofstream pairsfile; // list of high probability haplotype pairs
                       //for each individual
   // ofstream finalfile; // output final haplist used
   ofstream signiffile; // output final haplist used
   ofstream hotfile; // hotspot info
-  
+
   if(collectdata){
     string recomfilename = filename+"_recom";
     string monitorfilename = filename+"_monitor";
     string  hotfilename = filename +"_hotspot";
-      
+
 
        // this to make sure results for multiple datasets are sent to a single file
     if(cmds["NDatasets"]>1 && !firsttime){
@@ -3835,7 +3837,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       }
       firsttime = false;
     }
-    
+
     string pairsfilename = filename+"_pairs";
     pairsfile.open(pairsfilename.c_str());
     assure (pairsfile, pairsfilename);
@@ -3843,7 +3845,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 //     string finalfilename = filename + "_final";
 //     finalfile.open(finalfilename.c_str());
 //     assure (finalfile, finalfilename);
-    
+
     if(testcasecontrol){
       string signiffilename = filename + "_signif";
       //if(cmds["testing"])
@@ -3852,30 +3854,30 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       signiffile.open(signiffilename.c_str());
       assure (signiffile, signiffilename);
     }
-    
+
   }
 
-  
+
   if(outputsample && collectdata){
     string samplefilename = filename+"_sample";
-    samplefile.open(samplefilename.c_str()); 
+    samplefile.open(samplefilename.c_str());
     assure ( samplefile, samplefilename);
   }
 #endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop, Nind); // start with list of all haplotypes in current guess
-    
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
   bool found;
 
   // Set up an index of the pairs in list that can make up each individual.
-  // index[ind] contains a vector of  pairs of pointers to haps in the list 
+  // index[ind] contains a vector of  pairs of pointers to haps in the list
   // that can make up individual ind
-  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind); 
-  haplist.MakePairsIndex(index,pop,true, true); 
+  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind);
+  haplist.MakePairsIndex(index,pop,true, true);
   // first bool (true) also removes those haps from list
   // that cannot make up any individuals in pop
   // second bool (true) means that missing positions are
@@ -3885,14 +3887,14 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
     for(int ind = 0; ind< Nind; ind++){
       cout << "Individual:" << ind << endl;
       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
-	(*hpair).first->first.print_haplotype(cout,coding);    
+	(*hpair).first->first.print_haplotype(cout,coding);
 	cout << ",";
-	(*hpair).second->first.print_haplotype(cout,coding); 
+	(*hpair).second->first.print_haplotype(cout,coding);
 	cout << endl;
       }
     }
   }
- 
+
   vector < vector< double > > phaseprobs(Nind); // set up a matrix for storing the prob of each phase for each ind
   for(int ind = 0; ind< Nind; ind++){
     phaseprobs[ind] = vector<double>(index[ind].size(),0.0);
@@ -3901,19 +3903,19 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
   int nchr = Nind+Nind;
   int nchrminus2 = nchr-2;
-     
+
   double removeamount = 1.0;
   double addamount = 1.0;
 
   double loglik;
 
   double SigmaMean=1;
-  double SigmaMult=1;  
+  double SigmaMult=1;
   ComputeRho();
 
 
- 
-  
+
+
   // burn-in iterations
   cerr << "Performing Burn-in iterations" << endl;
   cerr << setw(4) << 0 << "% done\033[A" << endl;
@@ -3925,36 +3927,36 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
+
       if((iter == Nburn/2)){
 	cerr << endl;
 	cerr << "Estimating recom rates" << endl;
 	if(verbose)
 	  cout << "Estimating recom rates" << endl;
-	InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds); 
+	InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds);
 	cerr << "Continuing Burn-in" << endl;
       }
-    
+
       if(iter > Nburn/2){
 	UpdateRho(SigmaMean,SigmaMult,nacceptRhoMean, nacceptRhoMult, d_cmds);
-	
+
 	if(verbose){
 	  OutputRho(cout);
 	  OutputCurrentLogProb(cout);
 	}
       }
- 
+
     } else {
       RandomiseOrder();
     }
-    
+
     loglik = 0;
 
     //double DPRIOR = (betaend/nchr) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend)/nchr);
-    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));    
+    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));
 
-    for(int i = 0; i<Nind; i++){    
-      int ind = order[i];     
+    for(int i = 0; i<Nind; i++){
+      int ind = order[i];
       haplist.SoftRemove(pop[ind],removeamount);
       haplist.MakePositiveHaps();
 
@@ -3971,10 +3973,10 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       // configurations where only one of the 2 haps has high prob
 
       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
-		
+
 	double prob1 = haplist.CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // pop[ind].get_nmissing() as last param would just check missing positions
-	double prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); // 
-		
+	double prob2 = haplist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob); //
+
 	double p = prob1;
 	if(addprobs)
 	  p += prob2;
@@ -3983,24 +3985,24 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	Prob.push_back(p);
 	sumprob+=p;
 
-#ifdef DEBUG       
+#ifdef DEBUG
 	((*hpair).first->first).print_haplotype(cout,coding);
 	cout << ",";
 	((*hpair).second->first).print_haplotype(cout,coding);
 	cout << ":" << p << endl;
 #endif
-	
+
       }
 
       //SOME OTHER PRIOR ANNEALING SCHEMES WE TRIED
       // original linear prior annealing (adding DPRIOR to p)
-      //double p = (CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength()) * 
+      //double p = (CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength()) *
       //(CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0)+DPRIOR)/(1+DPRIOR*haplist.get_listlength());
-      
+
       // "powered" version of prior annealing, raising p to power DPRIOR
       //double p = exp(DPRIOR * log(CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0)*
       //CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0)));
-      
+
       // store phase probabilities in phaseprobs -only necessary in order to do the later pruning...
       vector<double>::iterator probpointer = Prob.begin();
       for (vector<double>::iterator phase = phaseprobs[ind].begin(); phase != phaseprobs[ind].end(); phase++){
@@ -4014,7 +4016,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair = index[ind].begin();
       for(int i = 0; i<choice; i++)
 	sampledpair++;
-      
+
 #ifdef DEBUG
       cout << "Chosen Pair:" << endl;
       haplist.OutputPair(cout,*sampledpair, coding);
@@ -4033,14 +4035,14 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       pop[ind].print_haplotypes(cout,loci_type,coding,true,true,false,0,0);
 #endif
 
-      HapListImputeMissing(ind);  
- 
+      HapListImputeMissing(ind);
+
 #ifdef DEBUG
       cout << "ind = " << ind << endl;
       cout << "Status after Imputing missing:" << endl;
       pop[ind].print_haplotypes(cout,loci_type,coding,true,true,false,0,0);
 #endif
-     
+
       for(int chr = 0; chr <2 ; chr++){
 	bool isnewhap;
 	ListType::iterator newrecord = haplist.Add(pop[ind], chr,addamount, isnewhap);
@@ -4054,7 +4056,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
 
 	if(isnewhap)
-	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);   
+	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
 	// true param says to check missing positions
       }
 
@@ -4071,25 +4073,25 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
     }
   }
 
- 
+
 #ifdef DEBUG
       cout << "Adding ind:" << endl;
       haplist.Output(cout,coding);
 #endif
-      
+
     }
 
     cerr << setw(4) << (int) ((iter+1)*100.0/Nburn) << "% done\033[A" << endl;
-    //cout << "Log Likelihood: " << loglik << endl;    
+    //cout << "Log Likelihood: " << loglik << endl;
   }
-  
+
   if(verbose){
       cout << "Acceptance Rate for RhoMean, burnin: " << nacceptRhoMean*1.0/(Nburn) << endl;
-      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*1.0/(Nburn) << endl; 
+      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*1.0/(Nburn) << endl;
       cout << "SigmaMean = " << SigmaMean << endl;
       cout << "SigmaMult = " << SigmaMult << endl;
   }
-  
+
 
   // after burn-in, if necessary get better estimate of rho and appropriate sigmas
   if(nacceptRhoMean *2.0/Nburn < 0.1 || nacceptRhoMean *2.0/Nburn >0.9 || nacceptRhoMult *2.0/Nburn < 0.1 || nacceptRhoMult *2.0/Nburn >0.9){
@@ -4097,7 +4099,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       cerr << "Re-Estimating recom rates" << endl;
       if(verbose)
 	cout << "Estimating recom rates" << endl;
-      InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds); 
+      InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds);
     }
   }
 
@@ -4106,7 +4108,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   // actual iterations
   double meanloglik = 0;
 
-  // set up vecpermcc as vector of permutations of casecontrol labels    
+  // set up vecpermcc as vector of permutations of casecontrol labels
   vector<double> meanpermloglik(nperm , 0); // mean log lik for controls
 
   vector< vector<int> > vecpermcc;
@@ -4118,7 +4120,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
     }
   }
 
-  
+
   // Here we prune index to remove very unlikely hap pairs
   // (also sets phaseprobs to be 0)
   haplist.PrunePairsIndex(index, phaseprobs,pop,minfreqpair*0.5);
@@ -4128,9 +4130,9 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   for(int ind = 0; ind<Nind; ind++)
     if(casecontrol[ind]>ngroups)
       ngroups = casecontrol[ind];
-  ngroups++;    
+  ngroups++;
   haplist.SetupGroupFreqs(ngroups);
-  
+
   // set up group size vector
   groupsize = vector<int>(ngroups,0);
   for(int ind = 0; ind<Nind; ind++)
@@ -4138,10 +4140,10 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
 
   cerr << "Performing Main iterations" << endl;
-  cerr << setw(4) << 0 << "% done\033[A" << endl; 
-   
+  cerr << setw(4) << 0 << "% done\033[A" << endl;
+
   //int NumberOfSqPseudoCountUpdates = 0;
-  
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
@@ -4151,11 +4153,11 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
   for(int iter = 0; iter < Niter; iter++){
     loglik = 0;
-      
+
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
+
       UpdateRho(SigmaMean,SigmaMult, nacceptRhoMean, nacceptRhoMult, d_cmds);
       if(verbose){
 	OutputRho(cout);
@@ -4172,16 +4174,16 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 
     if(testcasecontrol && collectdata){
       for(int i = 0; i< nperm; i++){
-	meanpermloglik[i] += 
-	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) + 
+	meanpermloglik[i] +=
+	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) +
 	  logProb( method, vecRho, vecpermcc[i], 1.0, 1);
 	// add likelihoods for group 0 and group 1
       }
     }
-   
+
     for(int i = 0; i<Nind; i++){
       int ind = order[i];
-    
+
       haplist.SoftRemove(pop[ind],removeamount);
       haplist.MakePositiveHaps();
 
@@ -4208,25 +4210,25 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	    if(((*hpair).first->first).get_allele(locus)!=((*hpair).second->first).get_allele(locus))
 	      p *= 0.5;
 	}
-	
+
 	Prob.push_back(p);
 	sumprob +=p;
-	
-	
-#ifdef DEBUG  
-	cout << "ind:" << ind << endl;     
+
+
+#ifdef DEBUG
+	cout << "ind:" << ind << endl;
 	((*hpair).first->first).print_haplotype(cout,coding);
 	cout << ",";
 	((*hpair).second->first).print_haplotype(cout,coding);
 	cout << ":" << p << endl;
-#endif	
+#endif
       }
-    
+
     // Store data necessary to compute (Rao-Blackwellised) estimates of posterior mean of freqs, and freqs squared
       // (this is the old version - new version appears below)
       // for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 // 	haplist.haplist[(*hpair).first->first].PseudoCount += Prob[probpos]/sumprob;
-// 	haplist.haplist[(*hpair).second->first].PseudoCount += Prob[probpos]/sumprob;	
+// 	haplist.haplist[(*hpair).second->first].PseudoCount += Prob[probpos]/sumprob;
 // 	probpos++;
 //       }
 
@@ -4238,8 +4240,8 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	    grouphapcount = (double) GetGroupCount(h->first,casecontrol[ind],ind);
 	  int groupn = groupsize[casecontrol[ind]];
 
-	  h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)	 
-	  
+	  h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)
+
 	  h->second.GroupFreq[casecontrol[ind]] += (grouphapcount / groupn);
 
 	  if(collectdata){
@@ -4251,20 +4253,20 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	  for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 	    int indicator1 = (*hpair).first->first == (h->first);
 	    int indicator2 = (*hpair).second->first == (h->first);
- 
+
 	    h->second.PseudoCount += (Prob[probpos]/sumprob) * (1.0/nchr) * (indicator1 + indicator2);
 	    h->second.GroupFreq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/groupn) * (indicator1 + indicator2);
-	    
+
 	    if(collectdata){
 	      h->second.SqPseudoCount += (Prob[probpos]/sumprob) * (1.0/(nchr*nchr)) * (indicator1 + indicator2) *
 		(indicator1 + indicator2 + 2*hapcount);
 	      h->second.GroupFreqSq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/(groupn*groupn)) * (indicator1 + indicator2) *
-		(indicator1 + indicator2 + 2*grouphapcount);	    
+		(indicator1 + indicator2 + 2*grouphapcount);
 	    }
 	    probpos++;
-	  } 
+	  }
       }
-      
+
       //store phase probabilities in phaseprobs
       vector<double>::iterator probpointer = Prob.begin();
       for (vector<double>::iterator phase = phaseprobs[ind].begin(); phase != phaseprobs[ind].end(); phase++){
@@ -4273,12 +4275,12 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       }
 
       int choice = rint2(Prob,sumprob);
-      loglik += log(sumprob);      //other possibility: loglik += log(Prob[choice]); 
+      loglik += log(sumprob);      //other possibility: loglik += log(Prob[choice]);
 
       vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair = index[ind].begin();
       for(int i = 0; i<choice; i++)
 	sampledpair++;
-      
+
 #ifdef DEBUG
       cout << "Chosen Pair:" << endl;
       haplist.OutputPair(cout,*sampledpair,coding);
@@ -4287,12 +4289,12 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
       //pop[ind].update_haplotype(0,(*sampledpair).first->first);
       //pop[ind].update_haplotype(1,(*sampledpair).second->first);
       pop[ind].update_haplotypes((*sampledpair).first->first,(*sampledpair).second->first);
-      
+
       // this bit allows missing positions to be reconstructed
       // without reference to the HapList;
-      // 
+      //
       // is not quite correct for case where one allele may be missing
-      // 
+      //
       HapListImputeMissing(ind);
 //        // add new hap to list; extend Pairs index if necessary
       for(int chr = 0; chr <2 ; chr++){
@@ -4306,37 +4308,37 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	if(isnewhap)
 	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
       }
-      
+
 #ifdef DEBUG
       cout << "Adding ind:" << endl;
       haplist.Output(cout,coding);
 #endif
-      
-      //pop[ind].UpdateCounts(); 
+
+      //pop[ind].UpdateCounts();
 
       if(verbose){
 	OutputRho(cout);
 	OutputCurrentLogProb(cout);
       }
     }
-   
+
     if(collectdata){
-      monitorfile << loglik << " " << CurrentLogProb <<  endl; 
+      monitorfile << loglik << " " << CurrentLogProb <<  endl;
       if(outputsample)
 	output(samplefile, true, true);
     }
-    
-    cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl; 
+
+    cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl;
     meanloglik +=loglik;
   }
-  
+
   if(verbose){
       cout << "Acceptance Rate for RhoMean: " << nacceptRhoMean*1.0/(Niter) << endl;
-      cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/(Niter) << endl; 
+      cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/(Niter) << endl;
       cout << "SigmaMean = " << SigmaMean << endl;
       cout << "SigmaMult = " << SigmaMult << endl;
   }
-  
+
   vecpermcc = vector<vector<int> > (0);
 
   if(testcasecontrol && collectdata){
@@ -4354,14 +4356,14 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 // copy PsedoCounts (posterior means of Freqs) to Freqs (suitably normalised)
   haplist.CopyPseudoCountsToFreqs();
   haplist.NormaliseFreqs();
-  
+
   if(collectdata){
-    haplist.NormaliseSqPseudoCounts(Nind * Niter); 
+    haplist.NormaliseSqPseudoCounts(Nind * Niter);
 
     haplist.NormaliseGroupFreqs();
 
     cerr << "Writing output to files " << endl;
-    // Output list of plausible pairs for each individual 
+    // Output list of plausible pairs for each individual
     for(int ind = 0; ind<Nind; ind++){
       pairsfile << "IND: " << pop[ind].get_id() << endl;
       for(int j = 0; j< index[ind].size(); j++){
@@ -4370,29 +4372,29 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 	  pairsfile << " , ";
 	  pairsfile.setf(ios::fixed);
 	  pairsfile.setf(ios::showpoint);
-	  pairsfile.precision(3); 
+	  pairsfile.precision(3);
 	  pairsfile << phaseprobs[ind][j] << endl;
 	}
       }
     }
-    
+
     // Output final haplist used
-    
+
     // haplist.Dump(finalfile);
 
     haplist.SetBestGuesses(pop,index,phaseprobs); // set all individuals in pop to their best guesses
-   
+
     //    cout << "TestOut0:" << pop[0].get_allele(0,1) << endl;
     //cout << "TestOut1:" << pop[0].get_allele(1,1) << endl;
- 
+
     cerr << "Producing Summary, please wait " << endl;
     // each element of this vector is a summary for a single individual
     // the false at the end forces it to produce a single summary with no splits
     vector<Summary> summary = haplist.ProduceSummary(index,phaseprobs,0,get_nloci(),pop,false);
-    
+
     // for(vector<Summary>::iterator s = summary.begin(); s<summary.end(); s++)
     //  s->Output(cout, coding);
-    
+
     TransferCounts(summary);
 
     // produce separate lists of freqs for cases and controls
@@ -4401,13 +4403,13 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
 //       if(casecontrol[ind]>ngroups)
 // 	ngroups = casecontrol[ind];
 //     ngroups++;
-    
+
 //     haplist.SetupGroupFreqs(ngroups);
 //     for(int ind = 0; ind<Nind; ind++){
 //       int probpos = 0;
-//       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){  
+//       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 // 	haplist.haplist[(*hpair).first->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);
-// 	haplist.haplist[(*hpair).second->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);	  
+// 	haplist.haplist[(*hpair).second->first].GroupFreq[casecontrol[ind]] += phaseprobs[ind][probpos]/(2*Nind);
 // 	probpos++;
 //       }
 //     }
@@ -4434,7 +4436,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   // First, when list is initialised (before calling this fn)
   // all possibilities for SNPs are added. (for Multiallelics,
   // all possibilities based on current imputed alleles are added).
-  // Second, when list of possible pairs is made up, all pairs 
+  // Second, when list of possible pairs is made up, all pairs
   // consistent with observed alleles are added.
 
 
@@ -4450,18 +4452,18 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   int outputsample = cmds["outputsample"];
   int method = cmds["method"];
   int nperm = cmds["nperm"];
-  
+
   RecomModel = cmds["RecomModel"];
- 
+
   int testcasecontrol = (nperm>0);
-  
+
   double rho = d_cmds["rhostart"];
   double betastart = d_cmds["betastart"];
   double betaend = d_cmds["betaend"];
   double minfreqpairoutput = d_cmds["output_minfreq"]; //min prob that a particular
   // pair has to have before being output as a possible pair
   double minfreqpair = d_cmds["minfreq"];
-  
+
   if(collectdata){
     Niter *= cmds["finalrepmult"];
     Nthin *= cmds["finalrepmult"];
@@ -4473,9 +4475,9 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       method = 'R';
     else
       method = 'S';
-  
+
   cout << "Method = " << (char) method << endl;
-  
+
   if(collectdata)
     cout << "Performing Final Set of Iterations... nearly there!" << endl;
 
@@ -4489,19 +4491,19 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   ostringstream hotfile{};
 #else
   ofstream recomfile;
-  ofstream monitorfile; 
+  ofstream monitorfile;
   ofstream samplefile; // sample from posterior
-  ofstream pairsfile; // list of high probability haplotype pairs 
+  ofstream pairsfile; // list of high probability haplotype pairs
                       //for each individual
   // ofstream finalfile; // output final haplist used
   ofstream signiffile; // output final haplist used
   ofstream hotfile; // hotspot info
-  
+
   if(collectdata){
     string recomfilename = filename+"_recom";
     string monitorfilename = filename+"_monitor";
     string  hotfilename = filename +"_hotspot";
-      
+
 
        // this to make sure results for multiple datasets are sent to a single file
     if(cmds["NDatasets"]>1 && !firsttime){
@@ -4524,7 +4526,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       }
       firsttime = false;
     }
-    
+
     string pairsfilename = filename+"_pairs";
     pairsfile.open(pairsfilename.c_str());
     assure (pairsfile, pairsfilename);
@@ -4532,7 +4534,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 //     string finalfilename = filename + "_final";
 //     finalfile.open(finalfilename.c_str());
 //     assure (finalfile, finalfilename);
-    
+
     if(testcasecontrol){
       string signiffilename = filename + "_signif";
       //if(cmds["testing"])
@@ -4541,29 +4543,29 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       signiffile.open(signiffilename.c_str());
       assure (signiffile, signiffilename);
     }
-    
+
   }
 
   if(outputsample && collectdata){
     string samplefilename = filename+"_sample";
-    samplefile.open(samplefilename.c_str()); 
+    samplefile.open(samplefilename.c_str());
     assure ( samplefile, samplefilename);
   }
 #endif
 
   haplist.ClearFreqs(); //
   haplist.Add(pop, Nind); // start with list of all haplotypes in current guess
-    
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
   bool found;
 
   // Set up an index of the pairs in list that can make up each individual.
-  // index[ind] contains a vector of  pairs of pointers to haps in the list 
+  // index[ind] contains a vector of  pairs of pointers to haps in the list
   // that can make up individual ind
-  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind); 
-  haplist.MakePairsIndex(index,pop,true, true); 
+  vector < vector< pair< ListType::iterator,ListType::iterator> > > index(Nind);
+  haplist.MakePairsIndex(index,pop,true, true);
   // first bool (true) also removes those haps from list
   // that cannot make up any individuals in pop
   // second bool (true) means that missing positions are
@@ -4573,14 +4575,14 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     for(int ind = 0; ind< Nind; ind++){
       cout << "Individual:" << ind << endl;
       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
-	(*hpair).first->first.print_haplotype(cout,coding);    
+	(*hpair).first->first.print_haplotype(cout,coding);
 	cout << ",";
-	(*hpair).second->first.print_haplotype(cout,coding); 
+	(*hpair).second->first.print_haplotype(cout,coding);
 	cout << endl;
       }
     }
   }
- 
+
   vector < vector< double > > phaseprobs(Nind); // set up a matrix for storing the prob of each phase for each ind
   for(int ind = 0; ind< Nind; ind++){
     phaseprobs[ind] = vector<double>(index[ind].size(),0.0);
@@ -4589,7 +4591,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   int nchr = Nind+Nind;
   int nchrminus2 = nchr-2;
-     
+
   double removeamount = 1.0;
   double addamount = 1.0;
 
@@ -4601,9 +4603,9 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     cerr << "Estimating recom rates" << endl;
     if(verbose)
       cout << "Estimating recom rates" << endl;
-    InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds); 
+    InferRho(Niter/10,SigmaMean,SigmaMult,verbose, d_cmds);
   }
-  
+
   // burn-in iterations
   cerr << "Performing Burn-in iterations" << endl;
   cerr << setw(4) << 0 << "% done\033[A" << endl;
@@ -4612,11 +4614,11 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   for(int iter = 0; iter < Nburn; iter++){
     loglik = 0;
-    
+
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
+
       UpdateRho(SigmaMean,SigmaMult,nacceptRhoMean, nacceptRhoMult, d_cmds);
       if(verbose){
 	OutputRho(cout);
@@ -4627,13 +4629,13 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     }
 
     //double DPRIOR = (betaend/nchr) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend)/nchr);
-    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));    
+    double DPRIOR = (betaend) + ((Nburn-1-iter)*1.0/(Nburn-1))*((betastart-betaend));
 
-    for(int i = 0; i<Nind; i++){    
-      int ind = order[i];     
+    for(int i = 0; i<Nind; i++){
+      int ind = order[i];
       haplist.SoftRemove(pop[ind],removeamount);
       haplist.MakePositiveHaps();
-      
+
       double sumprob = 0;
       vector<double> Prob;
       bool addprobs = (ranf()<DPRIOR); // here DPRIOR is prob of adding,
@@ -4641,10 +4643,10 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       // configurations where only one of the 2 haps has high prob
 
       for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
-		
+
 	double prob1 = fuzzylist.CalcProb(((*hpair).first->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob, true); // pop[ind].get_nmissing() as last param would just check missing positions
-	double prob2 = fuzzylist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob, true); // 
-		
+	double prob2 = fuzzylist.CalcProb(((*hpair).second->first),method,Qptr,nchrminus2,vecRho,0, vector<int>(0), ALLSNP, vecdiffprob, true); //
+
 	double p = prob1;
 	if(addprobs)
 	  p += prob2;
@@ -4653,13 +4655,13 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	Prob.push_back(p);
 	sumprob+=p;
 
-#ifdef DEBUG       
+#ifdef DEBUG
 	((*hpair).first->first).print_haplotype(cout,coding);
 	cout << ",";
 	((*hpair).second->first).print_haplotype(cout,coding);
 	cout << ":" << p << endl;
 #endif
-	
+
       }
 
       // store phase probabilities in phaseprobs -only necessary in order to do the later pruning...
@@ -4675,15 +4677,15 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair = index[ind].begin();
       for(int i = 0; i<choice; i++)
 	sampledpair++;
-      
+
 #ifdef DEBUG
       cout << "Chosen Pair:" << endl;
       haplist.OutputPair(cout,*sampledpair, coding);
 #endif
 
       pop[ind].update_haplotypes((*sampledpair).first->first,(*sampledpair).second->first);
-      
-      HapListImputeMissing(ind);      
+
+      HapListImputeMissing(ind);
       for(int chr = 0; chr <2 ; chr++){
 	bool isnewhap;
 	ListType::iterator newrecord = haplist.Add(pop[ind], chr,addamount, isnewhap);
@@ -4694,35 +4696,35 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	  haplist.ExtendPairsIndex(newrecord, index[ind], phaseprobs[ind], pop[ind], true);
 
 	if(isnewhap)
-	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);   
+	  haplist.ExtendPairsIndex(newrecord, index, phaseprobs, pop, true);
 	// true param says to check missing positions
       }
 
-    
+
 #ifdef DEBUG
       cout << "Adding ind:" << endl;
       haplist.Output(cout,coding);
 #endif
-      
+
     }
 
     cerr << setw(4) << (int) ((iter+1)*100.0/Nburn) << "% done\033[A" << endl;
-    //cout << "Log Likelihood: " << loglik << endl;    
+    //cout << "Log Likelihood: " << loglik << endl;
   }
-  
+
   if(verbose){
       cout << "Acceptance Rate for RhoMean, burnin: " << nacceptRhoMean*1.0/(Nburn) << endl;
-      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*1.0/(Nburn) << endl; 
+      cout << "Acceptance Rate for RhoMult, burnin:: " << nacceptRhoMult*1.0/(Nburn) << endl;
       cout << "SigmaMean = " << SigmaMean << endl;
       cout << "SigmaMult = " << SigmaMult << endl;
   }
-  
+
   nacceptRhoMean=nacceptRhoMult=0;
 
   // actual iterations
   double meanloglik = 0;
 
-  // set up vecpermcc as vector of permutations of casecontrol labels    
+  // set up vecpermcc as vector of permutations of casecontrol labels
   vector<double> meanpermloglik(nperm , 0); // mean log lik for controls
 
   vector< vector<int> > vecpermcc;
@@ -4734,7 +4736,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
     }
   }
 
-  
+
   // Here we prune index to remove very unlikely hap pairs
   // (also sets phaseprobs to be 0)
   haplist.PrunePairsIndex(index, phaseprobs,pop,minfreqpair*0.5);
@@ -4744,9 +4746,9 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   for(int ind = 0; ind<Nind; ind++)
     if(casecontrol[ind]>ngroups)
       ngroups = casecontrol[ind];
-  ngroups++;    
+  ngroups++;
   haplist.SetupGroupFreqs(ngroups);
-  
+
   // set up group size vector
   groupsize = vector<int>(ngroups,0);
   for(int ind = 0; ind<Nind; ind++)
@@ -4754,10 +4756,10 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
 
   cerr << "Performing Main iterations" << endl;
-  cerr << setw(4) << 0 << "% done\033[A" << endl; 
-   
+  cerr << setw(4) << 0 << "% done\033[A" << endl;
+
   //int NumberOfSqPseudoCountUpdates = 0;
-  
+
   haplist.ClearPseudoCounts(); // PseudoCounts are used to store posterior mean
   //of freqs of each hap
 
@@ -4767,11 +4769,11 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
   for(int iter = 0; iter < Niter; iter++){
     loglik = 0;
-      
+
     if(method == 'R' && (RhoMean>0)){
       ComputeRhoDerivAndCurrentLogProb();
       MHUpdateOrder();
-      
+
       UpdateRho(SigmaMean,SigmaMult, nacceptRhoMean, nacceptRhoMult, d_cmds);
       if(verbose){
 	OutputRho(cout);
@@ -4788,13 +4790,13 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 
     if(testcasecontrol && collectdata){
       for(int i = 0; i< nperm; i++){
-	meanpermloglik[i] += 
-	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) + 
+	meanpermloglik[i] +=
+	  logProb( method, vecRho, vecpermcc[i], 1.0, 0) +
 	  logProb( method, vecRho, vecpermcc[i], 1.0, 1);
 	// add likelihoods for group 0 and group 1
       }
     }
-   
+
     for(int i = 0; i<Nind; i++){
       int ind = order[i];
       haplist.SoftRemove(pop[ind],removeamount);
@@ -4817,20 +4819,20 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    if(((*hpair).first->first).get_allele(locus)!=((*hpair).second->first).get_allele(locus))
 	      p *= 0.5;
 	}
-	
+
 	Prob.push_back(p);
 	sumprob +=p;
-	
-	
-#ifdef DEBUG  
-	cout << "ind:" << ind << endl;     
+
+
+#ifdef DEBUG
+	cout << "ind:" << ind << endl;
 	((*hpair).first->first).print_haplotype(cout,coding);
 	cout << ",";
 	((*hpair).second->first).print_haplotype(cout,coding);
 	cout << ":" << p << endl;
-#endif	
+#endif
       }
-    
+
 
       int probpos = 0;
       for(ListType::iterator h = haplist.haplist.begin(); h != haplist.haplist.end(); h++){
@@ -4840,8 +4842,8 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	    grouphapcount = (double) GetGroupCount(h->first,casecontrol[ind],ind);
 	  int groupn = groupsize[casecontrol[ind]];
 
-	  h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)	 
-	  
+	  h->second.PseudoCount += (hapcount /nchr); // pseudocount stores posterior means of overall frequencies (bit of a misnomer for historical reasons! should change...)
+
 	  h->second.GroupFreq[casecontrol[ind]] += (grouphapcount / groupn);
 
 	  if(collectdata){
@@ -4853,20 +4855,20 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
 	  for(vector< pair<ListType::iterator,ListType::iterator> >::iterator hpair = index[ind].begin(); hpair != index[ind].end(); hpair++){
 	    int indicator1 = (*hpair).first->first == (h->first);
 	    int indicator2 = (*hpair).second->first == (h->first);
- 
+
 	    h->second.PseudoCount += (Prob[probpos]/sumprob) * (1.0/nchr) * (indicator1 + indicator2);
 	    h->second.GroupFreq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/groupn) * (indicator1 + indicator2);
-	    
+
 	    if(collectdata){
 	      h->second.SqPseudoCount += (Prob[probpos]/sumprob) * (1.0/(nchr*nchr)) * (indicator1 + indicator2) *
 		(indicator1 + indicator2 + 2*hapcount);
 	      h->second.GroupFreqSq[casecontrol[ind]] += (Prob[probpos]/sumprob) * (1.0/(groupn*groupn)) * (indicator1 + indicator2) *
-		(indicator1 + indicator2 + 2*grouphapcount);	    
+		(indicator1 + indicator2 + 2*grouphapcount);
 	    }
 	    probpos++;
-	  } 
+	  }
       }
-      
+
       //store phase probabilities in phaseprobs
       vector<double>::iterator probpointer = Prob.begin();
       for (vector<double>::iterator phase = phaseprobs[ind].begin(); phase != phaseprobs[ind].end(); phase++){
@@ -4875,7 +4877,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
       }
 
 int choice = rint2(Prob,sumprob);
-loglik += log(sumprob);      //other possibility: loglik += log(Prob[choice]); 
+loglik += log(sumprob);      //other possibility: loglik += log(Prob[choice]);
 
 vector< pair<ListType::iterator,ListType::iterator> >::iterator sampledpair = index[ind].begin();
 for(int i = 0; i<choice; i++)
@@ -4892,9 +4894,9 @@ pop[ind].update_haplotypes((*sampledpair).first->first,(*sampledpair).second->fi
 
 // this bit allows missing positions to be reconstructed
 // without reference to the HapList;
-// 
+//
 // is not quite correct for case where one allele may be missing
-// 
+//
 HapListImputeMissing(ind);
 //        // add new hap to list; extend Pairs index if necessary
 for(int chr = 0; chr <2 ; chr++){
@@ -4914,7 +4916,7 @@ cout << "Adding ind:" << endl;
 haplist.Output(cout,coding);
 #endif
 
-//pop[ind].UpdateCounts(); 
+//pop[ind].UpdateCounts();
 
 if(verbose){
 OutputRho(cout);
@@ -4923,18 +4925,18 @@ OutputCurrentLogProb(cout);
 }
 
 if(collectdata){
-monitorfile << loglik << " " << CurrentLogProb <<  endl; 
+monitorfile << loglik << " " << CurrentLogProb <<  endl;
 if(outputsample)
 output(samplefile, true, true);
 }
 
-cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl; 
+cerr << setw(4) << (int) ((iter+1)*100.0/(Niter)) << "% done\033[A" << endl;
 meanloglik +=loglik;
 }
 
 if(verbose){
 cout << "Acceptance Rate for RhoMean: " << nacceptRhoMean*1.0/(Niter) << endl;
-cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/(Niter) << endl; 
+cout << "Acceptance Rate for RhoMult: " << nacceptRhoMult*1.0/(Niter) << endl;
 cout << "SigmaMean = " << SigmaMean << endl;
 cout << "SigmaMult = " << SigmaMult << endl;
 }
@@ -4958,12 +4960,12 @@ haplist.CopyPseudoCountsToFreqs();
 haplist.NormaliseFreqs();
 
 if(collectdata){
-haplist.NormaliseSqPseudoCounts(Nind * Niter); 
+haplist.NormaliseSqPseudoCounts(Nind * Niter);
 
 haplist.NormaliseGroupFreqs();
 
 cerr << "Writing output to files " << endl;
-// Output list of plausible pairs for each individual 
+// Output list of plausible pairs for each individual
 for(int ind = 0; ind<Nind; ind++){
 pairsfile << "IND: " << pop[ind].get_id() << endl;
 for(int j = 0; j< index[ind].size(); j++){
@@ -4972,7 +4974,7 @@ if(phaseprobs[ind][j] > minfreqpairoutput){
   pairsfile << " , ";
   pairsfile.setf(ios::fixed);
   pairsfile.setf(ios::showpoint);
-  pairsfile.precision(3); 
+  pairsfile.precision(3);
   pairsfile << phaseprobs[ind][j] << endl;
 }
 }
@@ -5009,7 +5011,7 @@ return meanloglik;
 
 }
 
-// count how many haplotypes of type h are in group g, 
+// count how many haplotypes of type h are in group g,
 // omitting individual "omit"
 int ClassPop::GetGroupCount(const Haplotype & h, int g, int omit)
 {
@@ -5029,20 +5031,20 @@ void ClassPop::FastHapMapResolve(int Niter, int Nburn)
 {
 
   RandomiseOrder();
-  
+
   cerr << endl;
   cerr << "Performing Burn-in iterations" << endl;
   cerr << setw(4) << 0 << "% done\033[A" << endl;
-  for(int iter = 0; iter < Nburn; iter++){ 
+  for(int iter = 0; iter < Nburn; iter++){
     for(int i = 0; i < Nind; i++){
       int ind = order[i];
-      FastHapMapUpdate(ind,true); 
+      FastHapMapUpdate(ind,true);
     }
      cerr << setw(4) << (int) ((iter+1)*100.0/Nburn) << "% done\033[A" << endl;
   }
   cerr << endl;
-  
-  //cout << "Rho =" << RhoMean << endl; 
+
+  //cout << "Rho =" << RhoMean << endl;
   // FastHapMapUpdate(0);
 //   FastHapMapUpdate(1);
 //   exit(1);
@@ -5056,17 +5058,17 @@ void ClassPop::FastHapMapResolve(int Niter, int Nburn)
     UpdateCounts();
     cerr << setw(4) << (int) ((iter+1)*100.0/Niter) << "% done\033[A" << endl;
   }
-  
+
   cerr << endl;
-  
+
 
 }
 
 
 void ClassPop::FastHapMapUpdate(int ind, bool burnin)
-{ 
+{
 
-  
+
   MakeHapList(false);
   //haplist.Output(cout,coding);
 
@@ -5081,13 +5083,13 @@ void ClassPop::FastHapMapUpdate(int ind, bool burnin)
 //     cout << "buddy: " << buddy[i][0] << endl;
 //     cout << "child: " << childindex[i] << endl;
 //   }
-  
+
   haplist.SoftRemove(pop[ind],removeamount);
-  haplist.SoftRemove(pop[*b],removeamount); 
+  haplist.SoftRemove(pop[*b],removeamount);
   haplist.MakePositiveHaps();
   //haplist.Output(cout,coding);
 
-  
+
   vector<vector<double> > CopyProb1( vector< vector<double> > (Nloci, vector<double>(SS*2,0.0)) );
   vector<vector<double> > CopyProb2( vector< vector<double> > (Nloci, vector<double>(SS*2,0.0)) );
   vector<vector<double> > CopyProb3( vector< vector<double> > (Nloci, vector<double>(SS*2,0.0)) );
@@ -5096,15 +5098,15 @@ void ClassPop::FastHapMapUpdate(int ind, bool burnin)
   vector<int> ignore(Nloci,0);
   for(int i = 0; i< Nloci; i++)
     ignore[i] = 0; //burnin ? pop[ind].is_unknown(i) : 0; // condition on known positions if burnin is true; condition on everything if burnin is false
-  haplist.ComputeHiddenStateProbs(CopyProb1,pop[ind].get_haplotype(0), Qptr, nchrminus2, vecRho, true, ignore, vecTheta); 
-  haplist.ComputeHiddenStateProbs(CopyProb2,pop[ind].get_haplotype(1), Qptr, nchrminus2, vecRho, true, ignore, vecTheta); 
-  
+  haplist.ComputeHiddenStateProbs(CopyProb1,pop[ind].get_haplotype(0), Qptr, nchrminus2, vecRho, true, ignore, vecTheta);
+  haplist.ComputeHiddenStateProbs(CopyProb2,pop[ind].get_haplotype(1), Qptr, nchrminus2, vecRho, true, ignore, vecTheta);
+
   for(int i = 0; i< Nloci; i++)
-    ignore[i] = 0; //burnin ? pop[*b].is_unknown(i) : 0; 
-  haplist.ComputeHiddenStateProbs(CopyProb3,pop[*b].get_haplotype(0), Qptr, nchrminus2, vecRho, true, ignore, vecTheta); 
-  haplist.ComputeHiddenStateProbs(CopyProb4,pop[*b].get_haplotype(1), Qptr, nchrminus2, vecRho, true, ignore, vecTheta); 
-  
- 
+    ignore[i] = 0; //burnin ? pop[*b].is_unknown(i) : 0;
+  haplist.ComputeHiddenStateProbs(CopyProb3,pop[*b].get_haplotype(0), Qptr, nchrminus2, vecRho, true, ignore, vecTheta);
+  haplist.ComputeHiddenStateProbs(CopyProb4,pop[*b].get_haplotype(1), Qptr, nchrminus2, vecRho, true, ignore, vecTheta);
+
+
   for(int locus = 0; locus < Nloci; locus++){
     if(pop[ind].is_unknown(locus)){
       vector<double> Prob(16,0.0);
@@ -5114,12 +5116,12 @@ void ClassPop::FastHapMapUpdate(int ind, bool burnin)
         for(int p01 = 0; p01 < 2; p01++){
           for(int p10 = 0; p10 < 2; p10++){
             for(int p11 = 0; p11 < 2; p11++){
-              Prob[i] = PriorProbFromCopyProb(p00,locus,CopyProb1) 
-                      * PriorProbFromCopyProb(p01,locus,CopyProb2) 
-                      * PriorProbFromCopyProb(p10,locus,CopyProb3) 
-                      * PriorProbFromCopyProb(p11,locus,CopyProb4) 
-                      * pop[ind].PrOrigGenotypeData(locus,p00,p01) 
-                      * pop[*b].PrOrigGenotypeData(locus,p10,p11) 
+              Prob[i] = PriorProbFromCopyProb(p00,locus,CopyProb1)
+                      * PriorProbFromCopyProb(p01,locus,CopyProb2)
+                      * PriorProbFromCopyProb(p10,locus,CopyProb3)
+                      * PriorProbFromCopyProb(p11,locus,CopyProb4)
+                      * pop[ind].PrOrigGenotypeData(locus,p00,p01)
+                      * pop[*b].PrOrigGenotypeData(locus,p10,p11)
                       * pop[childindex[ind]].PrOrigGenotypeData(locus,p00,p10);
 // note this last assumes no recom, as assumes parents transmit p00 and p10 to child
               sum += Prob[i++];
@@ -5127,7 +5129,7 @@ void ClassPop::FastHapMapUpdate(int ind, bool burnin)
           }
         }
       }
-      if(sum == 0){ 	
+      if(sum == 0){
          cerr << "Error: Mendelian inconsistency, in ind " << (ind+1) << ", locus " << (locus+1) << endl;
          exit(1);
       }
@@ -5158,23 +5160,23 @@ void ClassPop::FastHapMapUpdate(int ind, bool burnin)
 	       if(i==choice) goto GOTCHOICE;
 	       else i++;
 	     }
-      
+
     GOTCHOICE:
-      
+
       pop[ind].update_haplotype(0,locus,p00);
       pop[ind].update_haplotype(1,locus,p01);
       pop[*b].update_haplotype(0,locus,p10);
       pop[*b].update_haplotype(1,locus,p11);
       pop[childindex[ind]].update_haplotype(0,locus,p00);
       pop[childindex[ind]].update_haplotype(1,locus,p10);
-      
+
     }
 
   }
 
   haplist.Add(pop[ind],addamount);
   haplist.Add(pop[*b],addamount);
-  
+
 
 }
 
@@ -5193,15 +5195,15 @@ void ClassPop::HapListImputeMissing(int ind)
     vector<int> copiedtime ( Nloci ); // stores time at which each locus copied
     vector<int> copiedallele ( Nloci ); // stores allele each locus copied
     vector<int> copiedhap (Nloci); // stores hap in haplist each locus copied
-    //vector<int> missing = pop[ind].get_missing_list(); 
-    
+    //vector<int> missing = pop[ind].get_missing_list();
+
     vector< vector<int> > nmissing(2,pop[ind].get_nmissing());
- 
+
     vector< vector<int> > missing(2); // list of positions considered missing in this chromosome
 
  // set up nmissing as a vector for that particular chromosome, to say whether or not
       // each allele is missing or not (to deal with case where one allele is missing)
-      
+
     for(int locus = 0; locus < Nloci; locus++){
       if(pop[ind].nmissing(locus)==2){
 	nmissing[0][locus] = 1; // this bit unnecessary, but makes it more obvious what is going on
@@ -5209,7 +5211,7 @@ void ClassPop::HapListImputeMissing(int ind)
       }
 
       if(pop[ind].nmissing(locus)==1){ // if only one missing, if only
-	// one of the two alleles matches the known allele, the other 
+	// one of the two alleles matches the known allele, the other
 	// must be the "missing" allele; otherwise choose one
 	// at random to be missing
 
@@ -5237,20 +5239,20 @@ void ClassPop::HapListImputeMissing(int ind)
 	  exit(1);
 	}
       }
-      
+
       if(nmissing[0][locus]>0)
 	missing[0].push_back(locus);
       if(nmissing[1][locus]>0)
 	missing[1].push_back(locus);
-      
+
     }
 
-    
-    
+
+
     // THIS PART TO BE CHANGED TO ALLOW FOR GENOTYPING ERROR?
     for(int chr = 0; chr < 2; chr++){
-      haplist.ForwardsAlgorithm(pop[ind].get_haplotype(chr), Qptr, nchrminus2, vecRho, Alpha, AlphaSum, true, nmissing[chr], false);  
-#ifdef DEBUG        
+      haplist.ForwardsAlgorithm(pop[ind].get_haplotype(chr), Qptr, nchrminus2, vecRho, Alpha, AlphaSum, true, nmissing[chr], false);
+#ifdef DEBUG
         cout << "Alpha values: " << endl;
             for(int locus = 0; locus<Nloci; locus++){
               for(int j=0; j<Alpha[locus].size(); j++)
@@ -5258,21 +5260,21 @@ void ClassPop::HapListImputeMissing(int ind)
               cout << "Sum =" << AlphaSum[locus] << endl;
             }
 #endif
-      
+
       haplist.BackwardsAlgorithm(pop[ind].get_haplotype(chr), nchrminus2, vecRho, Alpha, AlphaSum, copiedtime, copiedallele, copiedhap);
 
-#ifdef DEBUG      
+#ifdef DEBUG
       cout << "Individual: " << ind << ", chromosome " << chr <<  endl;
       for(int i = 0; i<copiedallele.size(); i++)
         cout << copiedallele[i] << " , " << copiedtime[i] << endl;
-#endif 
-     
+#endif
+
       for(vector<int>::iterator u = missing[chr].begin(); u!=missing[chr].end(); u++){
 	//cout << "Calling impute_allele with " << *u << "," << nchrminus2 << "," << copiedtime[*u] << "," << copiedallele[*u] << endl;
-	
+
 	int newallele = impute_allele (*u, nchrminus2, copiedtime[*u], copiedallele[*u]);
 	pop[ind].update_haplotype (chr, *u, newallele);
-	
+
       }
     }
   }
