@@ -741,6 +741,7 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
 
   for(int r=0; r<loci_type.size(); r++){
     cerr << "Locus " << setw(5) << (r+1) << "\033[A" << endl;
+    cerr << "#####################  " << r << "/" << loci_type.size() << "  #####################\n";
     //cer << "; Theta = " << vecTheta[r] << endl;
     if(loci_type[r] == 'M'){
       Qvalues[r] = ArrayQ(loci_type[r], pop.size()+1, vecTheta[r], vecDelta[r] );

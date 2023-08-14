@@ -6,6 +6,7 @@
 #include "constants.hpp"
 #include "errcheck.hpp"
 #include "utility.hpp"
+#include "randombuffer.hpp"
 
 #include <string>
 #include <iostream>
@@ -19,13 +20,50 @@ int NIND = 0;
 int NHL = 0;
 bool TOOLONG; // used in testing for methods that don't want too many loci
 
-double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<double> & vecDelta,map<string, int> & cmdoptions, map<string, double> & d_cmdoptions, string filename, int & segment, bool collectdata, vector<int> blocks = vector<int>(0) )
+
+int MCMCResolveStepEstimate(int maxnloci, int nloci, RandomBuffer & rand){
+
+  vector<double> tempprob(3,0);
+  tempprob[0] = 0.4;
+  tempprob[1] = 0.3;
+  tempprob[2] = 0.3;
+  int updateloci = maxnloci ;
+
+  if((nloci <= updateloci) || (maxnloci<=0))
+    updateloci = nloci;
+  else if(nloci <= 2*maxnloci)
+    updateloci = nloci / 2;
+  else{
+    updateloci = maxnloci - rand.get();
+    if(updateloci<2)
+      updateloci = 2;
+  }
+
+
+  if((nloci>updateloci) && (updateloci>0)){
+
+    cerr << "****************  " << updateloci << " + "  << nloci - updateloci << "  " << nloci << " | "  << updateloci << "  ****************\n";
+
+    int a = MCMCResolveStepEstimate(maxnloci, updateloci, rand);
+    int b = MCMCResolveStepEstimate(maxnloci, nloci - updateloci, rand);
+    return a+b+1;
+  }
+  cerr << "****************\n";
+
+  return 1;
+}
+
+int MCMCResolveMaxStepEstimate(ClassPop & allpop, map<string, int> & cmdoptions, RandomBuffer & rand){
+  return MCMCResolveStepEstimate(cmdoptions["maxnloci"],allpop.get_nloci(),rand);
+}
+
+double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<double> & vecDelta,map<string, int> & cmdoptions, map<string, double> & d_cmdoptions, string filename, int & segment, int & max_segment, RandomBuffer & rand, bool collectdata, vector<int> blocks = vector<int>(0) )
 {
-  double loglik; 
-  
+  double loglik;
+
   int nloci = allpop.get_nloci();
   int nchr = 2*allpop.get_nind();
-  
+
   vector<double> tempprob(3,0);
   tempprob[0] = 0.4;
   tempprob[1] = 0.3;
@@ -35,17 +73,20 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
   if((nloci <= updateloci) || (cmdoptions["maxnloci"]<=0))
     updateloci = nloci;
   else if(nloci <= 2*cmdoptions["maxnloci"])
-    updateloci = nloci / 2;    
+    updateloci = nloci / 2;
   else{
-    updateloci = cmdoptions["maxnloci"] - rint2(tempprob,1.0);
+    updateloci = cmdoptions["maxnloci"] - rand.get();
     if(updateloci<2)
       updateloci = 2;
   }
 
-  if((nloci>updateloci) && (updateloci>0)){    
+  if((nloci>updateloci) && (updateloci>0)){
+
     ClassPop LHSpop(allpop,0,updateloci);
     ClassPop RHSpop(allpop,updateloci,nloci);
- 
+
+    cerr << "****************  " << LHSpop.get_nloci() << " + "  << RHSpop.get_nloci() << "  " << nloci << " | "  << updateloci << "  ****************\n";
+
     if(cmdoptions["hierarchical"] == 1){
       // following is for hierarchical ligation, instead of progressive
       LHSpop = ClassPop(allpop,0,nloci/2);
@@ -53,32 +94,36 @@ double MCMCResolve(ClassPop & allpop, int Niter, int Nthin, int Nburn, vector<do
     }
     allpop = ClassPop(); // remove allpop to save memory
 
-    MCMCResolve(LHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment, false);
+    MCMCResolve(LHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment,max_segment,rand,false);
     cerr << segment << " segment operations done" << endl;
     segment ++;
-    MCMCResolve(RHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment, false);    
+    cerr << "#####################  " << segment << "/" << max_segment << "  #####################\n";
+
+    MCMCResolve(RHSpop, Niter, Nthin, Nburn, vecDelta,cmdoptions,d_cmdoptions,filename,segment,max_segment,rand,false);
     cerr << segment << " segment operations done" << endl;
     segment ++;
-    
+    cerr << "#####################  " << segment << "/" << max_segment << "  #####################\n";
+
     allpop = ClassPop(LHSpop,RHSpop,(1.0/nchr)*d_cmdoptions["minfreq"]);
 
     allpop.ResetCounts(); // clear counts taken so far of all the individual phases, for final MCMC run
-    
+
     loglik = allpop.MCMCListResolvePhase(cmdoptions, Niter,Nthin, Nburn, vecDelta,d_cmdoptions, filename, false, collectdata);
     //allpop = ClassPop(LHSpop,RHSpop,cmdoptions["method"], Niter, vecDelta,d_cmdoptions["rhostart"],d_cmdoptions["betastart"], d_cmdoptions["betaend"],(1.0/nchr)*d_cmdoptions["minfreq"]);
-    
-    //} 
+
+    //}
   } else {
     allpop.ResetCounts(); // clear counts taken so far of all the individual phases, for final MCMC run
     bool initialise = true;
     if(cmdoptions["blocks"])
       initialise = false;
-    loglik = allpop.MCMCListResolvePhase(cmdoptions, Niter, Nthin, Nburn, vecDelta,d_cmdoptions, filename, initialise, collectdata); 	
+    cerr << "****************\n";
+    loglik = allpop.MCMCListResolvePhase(cmdoptions, Niter, Nthin, Nburn, vecDelta,d_cmdoptions, filename, initialise, collectdata);
   }
-  
+
   return loglik;
 }
-	  	
+
 #ifdef CP_PHASE_LIB
 #include <sstream>
 #ifdef CP_PHASE_NOFILE
@@ -110,17 +155,17 @@ int main ( int argc, char** argv)
 #endif
 
     // Processing command line options
-    // Default options     
+    // Default options
     map<string, string> filenames;
     map<string, int>    cmdoptions;
     map<string, double> d_cmdoptions; // double command options
 
-    int Niter = 100;           // Number of MCMC iterations 
+    int Niter = 100;           // Number of MCMC iterations
     int Nthin = 1;             // Thinning interval
     int Nburn = 100;           // Burn-in iterations
     int status = proc_args ( argc, argv, filenames, cmdoptions, d_cmdoptions,
              Niter, Nthin, Nburn);
-    
+
 #ifdef CP_PHASE_NOFILE
 	istringstream input{data.input};
 	ostringstream output{};
@@ -142,8 +187,8 @@ int main ( int argc, char** argv)
     // Open outputfile
     ofstream output (filenames["output"].c_str());
     assure ( output, filenames["output"] );
-    
-    
+
+
     string freqfilename = filenames["output"]+"_freqs";
     ofstream freqfile (freqfilename.c_str());
 
@@ -162,30 +207,30 @@ int main ( int argc, char** argv)
     ifstream ifstr_init;
     ifstream deltaFile;
 #endif
-    
-    for (int dataset = 0; dataset < cmdoptions["Nskip"]; 
+
+    for (int dataset = 0; dataset < cmdoptions["Nskip"];
          dataset++) {
         // Set loci types
-        
+
         // initialization and read in data
-        ClassPop allpop;        
+        ClassPop allpop;
 
         cerr << "Reading in data" << endl;
-        allpop.read_data ( input, cmdoptions, d_cmdoptions, filenames );        
+        allpop.read_data ( input, cmdoptions, d_cmdoptions, filenames );
         cerr << endl << "Finished reading" << endl;
-	       	
+
     }
-    for (int dataset = 0; dataset < cmdoptions["NDatasets"]; 
+    for (int dataset = 0; dataset < cmdoptions["NDatasets"];
          dataset++) {
         // Set loci types
-        
+
         // initialization and read in data
-        ClassPop allpop;        
+        ClassPop allpop;
 
         cerr << "Reading in data" << endl;
-        allpop.read_data ( input, cmdoptions, d_cmdoptions, filenames );        
+        allpop.read_data ( input, cmdoptions, d_cmdoptions, filenames );
         cerr << endl << "Finished reading" << endl;
-       	
+
         vector<double> vecDelta ( allpop.get_nloci(), 0.0 );
 
 	// input delta from file if necessary
@@ -203,23 +248,23 @@ int main ( int argc, char** argv)
 	  }
 	}
 
-       	
+
 #ifndef CP_PHASE_NOFILE
 	if(cmdoptions["knowninfo"] == 1){
-	  ifstr_known.open ( filenames["knownfile"].c_str()); 
+	  ifstr_known.open ( filenames["knownfile"].c_str());
 	  assure (ifstr_known, filenames["knownfile"]);
 	}
 
-       	
+
 	if(cmdoptions["initmethod"] == 1){
 	  ifstr_init.open ( filenames["initfile"].c_str());
 	  assure (ifstr_init, filenames["initfile"]);
 	}
 #endif
 
-	allpop.initialize ( ifstr_known, ifstr_init, cmdoptions["knowninfo"], 
+	allpop.initialize ( ifstr_known, ifstr_init, cmdoptions["knowninfo"],
 			    cmdoptions["initmethod"], cmdoptions["theta"], vecDelta, cmdoptions["format"]);
-	
+
 #ifndef CP_PHASE_NOFILE
 	if(cmdoptions["knowninfo"] == 1)
 	  ifstr_known.close();
@@ -227,7 +272,7 @@ int main ( int argc, char** argv)
 	  ifstr_init.close();
 #endif
 
-      	
+
 //  if ( cmdoptions["startinfo"] == 2 ||
 //               cmdoptions["startinfo"] == 3 ) {
 //  	  ifstr_start.open ( filenames["startfile"].c_str());
@@ -240,7 +285,7 @@ int main ( int argc, char** argv)
 //  	  allpop.initialize ( ifstr_start,
 //  			      cmdoptions["startinfo"], cmdoptions["format"]  );
 //          }
-	
+
         allpop.output(cout,true,true);
 	int nloci = allpop.get_nloci();
 	if(nloci < 25)
@@ -251,12 +296,12 @@ int main ( int argc, char** argv)
 	//  ClassPop partpop(allpop,3,10);
 //  	partpop.output(cout,true,true);
 //  	allpop = partpop;
-	
+
 	double bestscore;
 	double score;
 	ClassPop bestpop;
 	for(int count = 0; count < cmdoptions["Nrep"]; count++){
-	    
+
 	  // decide which method to use to do the resolving; return
 	  // a measure of the goodness of fit in "score"
 
@@ -268,7 +313,7 @@ int main ( int argc, char** argv)
 	    double sigmamult = 0.1;
 	    cout << "simple hotspot = " << cmdoptions["usesimplehotspot"] << endl;
 	    allpop.InferRho(Niter, sigmamean, sigmamult, cmdoptions["verbose"], d_cmdoptions);
-	  } 
+	  }
 	  else if(cmdoptions["useped"]==2){
 
 	  	    allpop.FastHapMapResolve(Niter,Nburn);
@@ -276,82 +321,89 @@ int main ( int argc, char** argv)
 	  }
 	  // List method
 	  else if(cmdoptions["listresolve"]==1){
-	    double likelihood;  
+	    double likelihood;
 	    if(!TOOLONG){
 	      ClassPop partpop1(allpop,0,nloci/2);
 	      ClassPop partpop2(allpop,nloci/2,nloci);
 	      likelihood = partpop1.ListResolvePhase(cmdoptions["method"], Niter, vecDelta,d_cmdoptions["rhostart"],cmdoptions["randomise"],true);
 	      //output << "Likelihood = " << likelihood << endl;
 	      partpop1.output(cout,true,true);
-	      
+
 	      likelihood = partpop2.ListResolvePhase(cmdoptions["method"], Niter, vecDelta,d_cmdoptions["rhostart"],cmdoptions["randomise"],true);
 	      //output << "Likelihood = " << likelihood << endl;
 	      partpop2.output(cout,true,true);
-	      
+
 	      allpop = ClassPop(partpop1,partpop2,0.000001);
-	      
+
 	      //likelihood = allpop.ListResolvePhase(cmdoptions["method"], Niter, vecDelta,d_cmdoptions["rhostart"],cmdoptions["randomise"],true);
 	      likelihood = allpop.ListResolvePhase(cmdoptions["method"], Niter, vecDelta,d_cmdoptions["rhostart"],cmdoptions["randomise"],false);
 	      cout << "Likelihood = " << likelihood << endl;
 	      allpop.output(cout, true,true);
-	    } 
-	  } 
+	    }
+	  }
 	  else if(cmdoptions["mcmclistresolve"]==1){
 	    //allpop.InitialiseRho(d_cmdoptions["rhostart"]);
 	    int segment = 0;
 	    cout << "Resolving with method " << (char) cmdoptions["method"] << endl;
-	    score = MCMCResolve(allpop,Niter,Nthin,Nburn,vecDelta,cmdoptions,d_cmdoptions,filenames["output"],segment,true);
+
+      RandomBuffer rand(512);
+
+      rand.reset();
+      int max_segment = MCMCResolveMaxStepEstimate(allpop,cmdoptions,rand);
+
+      rand.reset();
+	    score = MCMCResolve(allpop,Niter,Nthin,Nburn,vecDelta,cmdoptions,d_cmdoptions,filenames["output"],segment,max_segment,rand,true);
 	  }
 	  else{
 	    // no recombination method
 	    if(cmdoptions["fRecom"]==0){
-	      
+
 	      cerr << "Finding good starting point..." << endl;
 	      allpop.GibbsResolvePhase(cmdoptions["GibbsIter"],DIRPRIOR);
-	      
+
 	      cerr << "Starting to resolve phase..." << endl;
-	      
+
 	      score = allpop.resolve_phase_NR ( Nburn, Nthin, Niter,
-						output, monitorfile, vecDelta, 
-						cmdoptions["verbose"], cmdoptions["AncUpdate"], cmdoptions["NaiveGibbs"]);	     
+						output, monitorfile, vecDelta,
+						cmdoptions["verbose"], cmdoptions["AncUpdate"], cmdoptions["NaiveGibbs"]);
 	    }
 	    else {
-	      allpop.resolve_phase_R ( d_cmdoptions["theta"], 
+	      allpop.resolve_phase_R ( d_cmdoptions["theta"],
 				       d_cmdoptions["rhostart"],
-				       Nburn, Nthin, Niter, 
+				       Nburn, Nthin, Niter,
 				       output, monitorfile, vecDelta, cmdoptions["verbose"]);
 	    }
 	  }
-	  
+
 	  //cerr << "SCORE FOR THIS TRIAL =" << score << endl;
-	  
+
 	  if ((count ==0) || (score > bestscore)){
 	    //cerr << "This beats current score - switching bestpop" << endl;
 	    bestpop = allpop;
 	    bestscore = score;
 	  }
 	}
-	
+
 	allpop = bestpop;
-	
+
 	if(cmdoptions["testing"] ==1){
 
 #ifndef CP_PHASE_NOFILE
 	  hbgfile.open(hbgfilename.c_str(),ios::app);
 	  probfile.open(probfilename.c_str(),ios::app);
 #endif
-	  
+
 	  //allpop.RestoreSavedState();
 	  //allpop.output_all_haps (output  ,true , false, false, d_cmdoptions["phase_threshold"]);
-	  
+
 	  allpop.output_all_haps (output  ,true , false, true, true, d_cmdoptions["phase_threshold"]);
-	  
+
 	  allpop.output_all_correct_probs(probfile);
 
- 	  // print out best guesses according to PL phase 
+ 	  // print out best guesses according to PL phase
 	  // ie current values of haps.
 	  allpop.output_all_haps( hbgfile, true , false, false, true, d_cmdoptions["phase_threshold"]);
-	  
+
 #ifndef CP_PHASE_NOFILE
 	  hbgfile.close();
 	  probfile.close();
@@ -394,14 +446,14 @@ int main ( int argc, char** argv)
 	      output << filenames["output"] + "_signif : p-value for testing cases vs controls" << endl;
 	    if(cmdoptions["outputsample"])
 	      output << filenames["output"] + "_sample : sample from posterior distribution of haplotype reconstruction" << endl;
-	    
+
 #ifndef CP_PHASE_NOFILE
 	    output << monitorfilename << " : file for monitoring convergence" << endl;
 #endif
 	    output << "END OUTFILE_LIST" << endl;
-	    
+
 	    output << endl;
-	     
+
 	    output << "BEGIN INPUT_SUMMARY" << endl;
 	    output << "Number of Individuals: " << allpop.get_nind() << endl;
 	    output << "Number of Loci: " << allpop.get_nloci() << endl;
@@ -410,19 +462,19 @@ int main ( int argc, char** argv)
 	      output << allpop.get_position(r) << " ";
 	    output << endl;
 	    output << "END INPUT_SUMMARY" << endl;
-	    
+
 	    output << endl;
 
-	   
-	   
+
+
 	    allpop.MakeHapList(true);
-	    	    
+
 	    // output << "List of haplotypes found in best reconstruction," << endl;
 // 	    output << "with counts" << endl;
 // 	    output << endl;
 // 	    allpop.OutputHapList(output,0,false);
 // 	    output << endl << endl;
-	    
+
 	    output << "List of haplotypes found in best reconstruction, with counts." << endl;
 #ifndef CP_PHASE_NOFILE
 	    output << "(See file " << freqfilename << " for haplotype population frequency estimates)" << endl;
@@ -441,32 +493,32 @@ int main ( int argc, char** argv)
 	    allpop.OutputHaplistSummary(output);
 	    output << "END BESTPAIRS_SUMMARY" << endl;
 	    output << endl << endl;
-	    
+
 	    output << "Haplotype estimates for each individual, with uncertain phases enclosed in ()" << endl;
 	    output << "and uncertain genotypes enclosed in []:" << endl;
 	    output << endl;
-	    
+
 	    output << "BEGIN BESTPAIRS1" << endl;
 	    allpop.output_all_haps (output  ,printknownphase , printnames, printbestguess, printmissing , d_cmdoptions["phase_threshold"], d_cmdoptions["allele_threshold"]);
-	    output << "END BESTPAIRS1" << endl;	    
-	    
+	    output << "END BESTPAIRS1" << endl;
+
 	    output << endl << endl;
 	    output << "Haplotype estimates for each individual, with uncertain phases enclosed in ()" << endl;
 	    output << "and uncertain genotypes enclosed in []" << endl;
 	    output << "with phase known positions indicated by " << SPACEHOLDER << endl;
-	    
+
 	    output << endl;
-	    
+
 	     output << "BEGIN BESTPAIRS2" << endl;
 	    allpop.output_all_haps (output  ,false , printnames, printbestguess, false, d_cmdoptions["phase_threshold"], d_cmdoptions["allele_threshold"]);
-	    output << "END BESTPAIRS2" << endl;	 
-	    
+	    output << "END BESTPAIRS2" << endl;
+
 	    output << endl << endl;
-	    
+
 	    output << "Phase probabilities at each site" << endl;
 	    output << "with phase known positions indicated by " << SPACEHOLDER << endl;
 	    output << "and missing data positions indicated by " << '?' << endl;
-	    
+
 	    output << endl;
 	    output << "BEGIN PHASEPROBS" << endl;
 	    allpop.OutputPhaseProbs( output, false);
@@ -478,9 +530,9 @@ int main ( int argc, char** argv)
 	    //allpop.output_all_phases(endfile, true);
 	  }
     }
-    
 
-    
+
+
     // Close file streams
 #ifdef CP_PHASE_NOFILE
 	data.output  += output.str();
@@ -494,7 +546,7 @@ int main ( int argc, char** argv)
     monitorfile.close();
     freqfile.close();
 #endif
-       
+
 #if defined(CP_PHASE_DISABLE_COUT) && defined(CP_PHASE_NOFILE)
     cout.rdbuf(coutBuf);
 	data.cout = coutStream.str();
@@ -508,7 +560,7 @@ int main ( int argc, char** argv)
 
 // {{{ Log
 
-/* 
+/*
    $Log: phase.cpp,v $
    Revision 1.34  2003/06/14 00:24:05  stephens
    Adding files, and committing a lot of changes
