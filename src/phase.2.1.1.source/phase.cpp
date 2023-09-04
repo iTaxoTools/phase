@@ -347,6 +347,8 @@ int main ( int argc, char** argv)
 
       rand.reset();
 	    score = MCMCResolve(allpop,Niter,Nthin,Nburn,vecDelta,cmdoptions,d_cmdoptions,filenames["output"],segment,max_segment,rand,true);
+      if (g_progressCallback) g_progressCallback(max_segment, max_segment, "MCMC resolution");
+
 	  }
 	  else{
 	    // no recombination method

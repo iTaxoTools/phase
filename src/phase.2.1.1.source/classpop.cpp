@@ -742,7 +742,7 @@ void ClassPop::initialize ( istream & istr_known, istream & istr_init, int known
 
   for(int r=0; r<loci_type.size(); r++){
     cerr << "Locus " << setw(5) << (r+1) << "\033[A" << endl;
-    if (g_progressCallback) g_progressCallback(r, loci_type.size(), "Computing matrix Q");
+    if (g_progressCallback) g_progressCallback(r+1, loci_type.size(), "Computing matrix Q");
 
     //cer << "; Theta = " << vecTheta[r] << endl;
     if(loci_type[r] == 'M'){
