@@ -1214,7 +1214,7 @@ void ClassPop::input_hudson_data ( istream & istr  )
     for (int n = 0; n < perm.size(); ++n) {
         perm[n] = n;
     }
-    random_shuffle ( perm.begin(), perm.end() );
+    time_shuffle ( perm.begin(), perm.end() );
     for (int n = 0; n < perm.size(); ++n) {
         pop[n/2].set_id ();
         int chr = perm[n] % 2;
@@ -1237,7 +1237,7 @@ void ClassPop::input_random ( istream & istr, int idpresent )
     for (int n = 0; n < perm.size(); ++n) {
         perm[n] = n;
     }
-    random_shuffle ( perm.begin(), perm.end() );
+    time_shuffle ( perm.begin(), perm.end() );
 
     // Read in haplotypes
     for (int n = 0; n < perm.size(); ++n) {
@@ -2019,7 +2019,7 @@ int ClassPop::update_phase_NR_fastestforsmallr ( int n,
       return 0;
 
     if( updatelist.size() > maxnpos) {
-        random_shuffle ( updatelist.begin(), updatelist.end() );
+        time_shuffle ( updatelist.begin(), updatelist.end() );
 
         // take the loci at the end of the update list and add them to the end of
         // the no-update list
@@ -2680,7 +2680,7 @@ bool ClassPop::updateRhoMultRandomWalk(double sigma)
 
 void ClassPop::RandomiseOrder()
 {
-  random_shuffle(order.begin(),order.end());
+  time_shuffle(order.begin(),order.end());
 }
 
 // propose new order; accept or reject based on probability
@@ -3319,7 +3319,7 @@ double ClassPop::BuddyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   if(testcasecontrol && collectdata){
     vecpermcc = vector<vector<int> > (nperm, casecontrol);
     for(int i = 1; i<nperm; i++){
-      random_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
+      time_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
     }
   }
 
@@ -4116,7 +4116,7 @@ double ClassPop::HapListMCMCResolvePhaseRemove(map<string,int> & cmds, int Niter
   if(testcasecontrol && collectdata){
     vecpermcc = vector<vector<int> > (nperm, casecontrol);
     for(int i = 1; i<nperm; i++){
-      random_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
+      time_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
     }
   }
 
@@ -4732,7 +4732,7 @@ double ClassPop::FuzzyHapListMCMCResolvePhaseRemove(map<string,int> & cmds, int 
   if(testcasecontrol && collectdata){
     vecpermcc = vector<vector<int> > (nperm, casecontrol);
     for(int i = 1; i<nperm; i++){
-      random_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
+      time_shuffle(vecpermcc[i].begin(),vecpermcc[i].end());
     }
   }
 

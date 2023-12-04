@@ -1,6 +1,6 @@
 
 /*
- * $Id: utility.cpp,v 1.13 2003/06/14 00:24:05 stephens Exp $ 
+ * $Id: utility.cpp,v 1.13 2003/06/14 00:24:05 stephens Exp $
  */
 
 #include "utility.hpp"
@@ -11,6 +11,10 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+#include <vector>
+#include <random>
+#include <ctime>
 
 using namespace std;
 
@@ -22,7 +26,7 @@ int proc_args ( int argc, char ** argv,
                 int    & Niter,
                 int    & Nthin,
                 int    & Nburn){
-  // Filenames    
+  // Filenames
   //  filenames["clark"]   = "temp.clark";
 //    filenames["check"]   = "temp.check";
 //    filenames["truth"]   = "temp.truth";
@@ -31,8 +35,8 @@ int proc_args ( int argc, char ** argv,
   filenames["monitorprobs"] = "temp.monitor";
   filenames["deltaFile"] = "eg.delta";
   filenames["pedigreefile"] = "eg.pedigree";
-  
-  //    
+
+  //
 //    cmdoptions["check"]          = 0;
 //    cmdoptions["outputforclark"] = 0;
 //    cmdoptions["outputtruth"]    = 0;
@@ -45,14 +49,14 @@ int proc_args ( int argc, char ** argv,
   cmdoptions["nhotspot"] = 0;
 
   //cmdoptions["truthcomp"]      = 0;
-  // Which algorithm to use, 
+  // Which algorithm to use,
   cmdoptions["EM"] = 0; // set to 1, using -E, to use EM-type method
   cmdoptions["listresolve"] = 0; // set to 1, using -L, to use list method
-  
+
   cmdoptions["method"] = 'R'; // set using -M: 'E' for EM, 'S', 'R', 'C'
   cmdoptions["mcmclistresolve"] = 1;
   cmdoptions["inferrho"] = 0; // this option (-h for "hotspotting") is for
-  // use when haplotypes are assumed as input  
+  // use when haplotypes are assumed as input
   cmdoptions["outputsample"] = 0; // this option (-s) outputs a sample from the posterior
   cmdoptions["hierarchical"] = 0;
   cmdoptions["blocks"] = 0;
@@ -99,7 +103,7 @@ int proc_args ( int argc, char ** argv,
   d_cmdoptions["Hotspotrate"] = 1.0/50000; // one hotspot per 50kb.
   d_cmdoptions["meanRhoMean"] = log(0.0004); // average value of log(rho)
   d_cmdoptions["sdRhoMean"] = 1e100; // expect rho a priori to be within factor 100 of mean
-  
+
   int nperm;
   ifstream prior;
 
@@ -112,7 +116,7 @@ int proc_args ( int argc, char ** argv,
 	cmdoptions["blocks"] = 1;
 	break;
 
-case 'A': 
+case 'A':
       cmdoptions["AncUpdate"] = 1;
       break;
 
@@ -124,7 +128,7 @@ case 'A':
       d_cmdoptions["betaend"] = atof( &argv[1][2] );
       break;
 
-    case 'c':       // flag to say input file contains case-control info 
+    case 'c':       // flag to say input file contains case-control info
       // (before individual id). followed by number of permutations to be done
       // if 0 permutations, use -1.
       cmdoptions["casecontrol"] = 1;
@@ -139,19 +143,19 @@ case 'A':
 	cmdoptions["nperm"] = 0;
       }
       break;
-      
+
 //      case 'C':          /* -Cfilename to take input from hudson's
 //  			  program (need -h option set) and output
 //  			  it to filename for input to clark's
 //  			  program */
-      
+
 //        cmdoptions["outputforclark"] = 1;
 //        filenames["clark"] = argv[1] + 2;
 //        break;
-      
+
     case 'd':
       filenames["deltaFile"] = argv[1] + 2;
-      cmdoptions["inputdelta"] = 1; 
+      cmdoptions["inputdelta"] = 1;
       break;
 
     case 'D':
@@ -164,27 +168,27 @@ case 'A':
     case 'E':
       cmdoptions["EM"] = 1;
       break;
-   
+
     case 'F': // sets the minimum freq for hap to be included in list under PL
       d_cmdoptions["minfreq"] = atof(&argv[1][2]);
       break;
-    
+
     case 'f':          //f=0 is default format
       // f=1 gives genotypes on single line
       // f=2 gives genotypes on single line, with 'H' to represent hets,
       // and single character for each homozygote
       cmdoptions["format"] = atoi(&argv[1][2]);
       break;
-      
+
     case 'g':          // set number of iterations for naive Gibbs
       // (when naive gibbs used to find starting point)
       cmdoptions["GibbsIter"] = atoi( &argv[1][2] );
       break;
-      
+
     case 'G': // use *only* naive Gibbs - not just to find starting point
       cmdoptions["NaiveGibbs"] = 1;
       break;
-     
+
 
     case 'h': // infer rho
       cmdoptions["inferrho"] = 1;
@@ -197,44 +201,44 @@ case 'A':
    //   case 'H':          // use simulated data from Hudson's program
 //        cmdoptions["usehudson"] = 1;
 //        cmdoptions["NDatasets"] = atoi( &argv[1][2] );
-//        if ( cmdoptions["NDatasets"] < 1 ) { 
+//        if ( cmdoptions["NDatasets"] < 1 ) {
 //  	cerr << "Error: specify number of data sets to use in"
 //  	     << " -H option\n";
 //        }
 //        break;
-      
+
     //  case 'i':          /* -i0 to initialise to random, -i1 to EM,
 //                            -i2 to Gibbs2 */
 //        cmdoptions["startmethod"] = atoi( &argv[1][2] );
 //        break;
-    
-    case 'i':   // -i0 to initialise all phases randomly (default), 
+
+    case 'i':   // -i0 to initialise all phases randomly (default),
       // -i1initfile to initialise all phases to phases in initfile
       // -i2 to initialise all phases to 0
       cmdoptions["initmethod"] = atoi( &argv[1][2] );
       if ( cmdoptions["initmethod"] == 1 )  {
 	filenames["initfile"] = argv[1] + 3;
-	cerr << "Using initial phase information in " 
+	cerr << "Using initial phase information in "
 
 	     << filenames["initfile"] << endl;
-      }  
+      }
       break;
-      
+
 
     case 'j':          /* Jump first few datasets */
       cmdoptions["Nskip"] = atoi( &argv[1][2] );
       break;
 
     case 'k':          /* Specify known phases */
-      cmdoptions["knowninfo"] = 1;      
+      cmdoptions["knowninfo"] = 1;
       filenames["knownfile"] = argv[1] + 2;
-      cerr << "Using known phase information in " 
+      cerr << "Using known phase information in "
 	   << filenames["knownfile"] << endl;
       if(filenames["knownfile"] == "999"){
 	cmdoptions["knowninfo"] = 999;
 	cmdoptions["maxnloci"] = 0;
-      } 
-      break;      
+      }
+      break;
 
     case 'l': // specify maximum number of loci in each block
       // (specify to be 0 if no maximum)
@@ -250,14 +254,14 @@ case 'A':
       else
 	cmdoptions["randomise"] = 0;
       break;
-      
+
     case 'M': // used to define method
       // -MC = "Classic" method
       // -MR = modified method with recombination
       // -MR1 n = n simple hotspots (variable pos hotspot)
 
       // -MR2 n left right left2 right2= simple hotspot model,fixed hotspot pos
-      // -MR3 = constant recom rate 
+      // -MR3 = constant recom rate
       // -MR4 = constant recom rate at user-specified value
 
       // -MS = modified method without recombination
@@ -282,70 +286,70 @@ case 'A':
 	    cout << "ERROR: number of hotspots for -MR1 must be 1" << endl;
 	    exit(1);
 	  }
-	} 
+	}
 	if(cmdoptions["RecomModel"] == 2){
 	  argv++; argc--;
 	  d_cmdoptions["left"] = atof ( &argv[1][0] );
 	  cout << "Left = " << d_cmdoptions["left"] << endl;
 	  argv++; argc--;
-	  d_cmdoptions["right"] = atof (&argv[1][0] ); 
+	  d_cmdoptions["right"] = atof (&argv[1][0] );
 	  cout << "Right = " << d_cmdoptions["right"] << endl;
 	  if(cmdoptions["nhotspot"]==2){
 	    argv++; argc--;
 	    d_cmdoptions["left2"] = atof ( &argv[1][0] );
 	    cout << "Left2 = " << d_cmdoptions["left2"] << endl;
 	    argv++; argc--;
-	    d_cmdoptions["right2"] = atof (&argv[1][0] ); 
+	    d_cmdoptions["right2"] = atof (&argv[1][0] );
 	    cout << "Right2 = " << d_cmdoptions["right2"] << endl;
 	  }
 	}
 
       }
-	
+
     //   cmdoptions["randomise"] = (int) (argv[1][3]);
 //       if(cmdoptions["randomise"]=='r')
 // 	cmdoptions["randomise"] = 1;
 //       else
 // 	cmdoptions["randomise"] = 0;
       break;
-      
 
-   
+
+
     case 'm':          // specify file to save monitor probs to
       filenames["monitorprobs"] = argv[1]+2;
       break;
-      
-    case 'n':          // no ID numbers 
+
+    case 'n':          // no ID numbers
       cmdoptions["idpresent"] = 0;
       break;
-      
+
     case 'N':          // max number to use for estimating rho (default 100)
       cmdoptions["NindToUseForRho"] = atoi( &argv[1][2] );
       break;
-    
+
     case 'O':
       d_cmdoptions["output_minfreq"] = atof(& argv[1][2] );
       break;
-   
-    case 'p':        
+
+    case 'p':
       d_cmdoptions["phase_threshold"] = atof( &argv[1][2] );
       break;
-      
+
     //  case 'r':          /* Randomise input haplotypes (used only
 //  			  for testing) */
 //        cmdoptions["randomise"] = 1;
 //        break;
-    
+
     case 'P':
       cmdoptions["useped"] = atoi(&argv[1][2]);
       filenames["pedigreefile"] =  argv[1]+3;
       break;
 
-      
-    case 'q':        
+
+    case 'q':
       d_cmdoptions["allele_threshold"] = atof( &argv[1][2] );
       break;
-     
+
     case 'Q':
       cmdoptions["usefuzzy"] = 1;
       break;
@@ -358,7 +362,7 @@ case 'A':
       prior >> d_cmdoptions["sdRhoMean"];
       prior >> d_cmdoptions["maxlambda"];
       prior >> d_cmdoptions["Hotspotsd"];
-      prior >> d_cmdoptions["MinHotspotSize"]; 
+      prior >> d_cmdoptions["MinHotspotSize"];
       prior >> d_cmdoptions["Hotspotrate"];
       cerr << "Prior mean for rho = " << d_cmdoptions["meanRhoMean"] << endl;
       cerr << "Expect rho to be within factor " << d_cmdoptions["sdRhoMean"] << endl;
@@ -373,7 +377,7 @@ case 'A':
       d_cmdoptions["Hotspotrate"] = 1.0/d_cmdoptions["Hotspotrate"];
       d_cmdoptions["meanRhoMean"] = log(d_cmdoptions["meanRhoMean"]);
       d_cmdoptions["sdRhoMean"] = 0.5 * log(d_cmdoptions["sdRhoMean"]);
-      
+
       break;
 
     case 'R':
@@ -381,24 +385,24 @@ case 'A':
       d_cmdoptions["rhostart"] = atof ( &argv[1][2] );
       break;
 
-    case 's':          // 
+    case 's':          //
       cerr << "Warning: the -s option can produce very large files" << endl;
       cmdoptions["outputsample"] = 1;
       break;
-      
+
     case 'S':          // set SEED
-      rngseed = atoi( argv[1] + 2 );          
+      rngseed = atoi( argv[1] + 2 );
       break;
-      
+
 
     case 't': // set theta
       d_cmdoptions["theta"] = atof(&argv[1][2]);
       break;
-      
+
     case 'T':           /* to set to "testing" output */
-      cmdoptions["testing"] = 1;      
+      cmdoptions["testing"] = 1;
       break;
-      
+
     case 'v': // set to be verbose  - updates you on allocating memory etc
       cmdoptions["verbose"] = 1;
       break;
@@ -420,8 +424,8 @@ case 'A':
       exit(1);
       //filenames["endfile"] = argv[1] + 2;
       break;
-      
-    default: 
+
+    default:
       cerr << "Error: option " << argv[1] << "unrecognized" << endl;
       exit(1);
     }
@@ -429,11 +433,11 @@ case 'A':
     --argc;
   }
   if ( cmdoptions["usehudson"] == 1 && cmdoptions["useMS"] == 1 )  {
-    cerr << "Error: Can't use -M and -H options at the same time" 
+    cerr << "Error: Can't use -M and -H options at the same time"
 	 << endl;
     exit (1);
   }
-  
+
   if(cmdoptions["EM"] == 1 && cmdoptions["NaiveGibbs"] == 1){
     cerr << "Error: Can't use -E and -G options at the same time" << endl;
     exit (1);
@@ -451,19 +455,19 @@ case 'A':
   argv += 2;
   argc -= 2;
 #endif
-  
-  if ( argc > 1 ) 
+
+  if ( argc > 1 )
     Niter = atoi( argv[1] );
-  if ( argc > 2 ) 
+  if ( argc > 2 )
     Nthin = atoi( argv[2] );
-  if ( argc > 3 ) 
+  if ( argc > 3 )
     Nburn = atoi( argv[3] );
   else
     Nburn = Niter;
-  
+
   // Set random number generator SEED
   //setall ( rngseed, 43243 );
-  
+
   //srandom ( rngseed );
   init_genrand(rngseed);
 
@@ -485,7 +489,7 @@ int rint2 ( const vector<double> & prob, double psum )
 {
     double csum = prob[0];
     double u = ranf();
-    
+
     if(psum == 0.0){ // return a uniform random number if all zeros
       return (int) floor(prob.size() * u);
     }
@@ -508,7 +512,7 @@ int rint2 ( const vector<double> & prob, double psum )
 	}
 	return prob.size() - 1;
       }
-   
+
 }
 
 //
@@ -552,21 +556,21 @@ double rgamma(double n,double lambda)
 		const double E=2.71828182;
 		const double b=(n+E)/E;
 		double p=0.0;
-		one: 
+		one:
 		p=b*ranf();
 		if(p>1) goto two;
 		x=exp(log(p)/n);
 		if(x>-log(ranf())) goto one;
 		goto three;
-		two: 
+		two:
 		x=-log((b-p)/n);
 		if (((n-1)*log(x))<log(ranf())) goto one;
-		three:;	
+		three:;
 	}
 	else if(n==1.0)
 //
 // exponential random variable, from Ripley, 1987, P230
-//	
+//
 	{
 		double a=0.0;
 		double u,u0,ustar;
@@ -613,9 +617,9 @@ double rgamma(double n,double lambda)
 		if(c3*u1+w+1.0/w < c4) goto six;
 		if(c3*log(u1)-log(w)+w >=1) goto four;
 		six:
-		x=c1*w;		
+		x=c1*w;
 		nprev=n;
-	}	
+	}
 
 	return x/lambda;
 }
@@ -657,8 +661,17 @@ void rperm(vector<int> & perm,int n)
     }
 }
 
+//
+// std::random_shuffle was deprecated, so we reimplement it here
+//
+template <typename RandomIt>
+void time_shuffle(RandomIt first, RandomIt last) {
+    std::mt19937 rng(std::time(nullptr));
+    std::shuffle(first, last, rng);
+}
+
 // {{{ Log
-/* 
+/*
    $Log: utility.cpp,v $
    Revision 1.13  2003/06/14 00:24:05  stephens
    Adding files, and committing a lot of changes

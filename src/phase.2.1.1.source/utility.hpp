@@ -10,9 +10,9 @@
 //#include "crand/ranlib.h"
 using namespace::std;
 
-int proc_args ( int, char **, 
-		std::map<string, string> &, 
-		std::map<string, int> &, 
+int proc_args ( int, char **,
+		std::map<string, string> &,
+		std::map<string, int> &,
 		std::map<string, double> &,
 	        int &, int &, int &);
 
@@ -27,6 +27,9 @@ void rdirichlet(const double * a, const int k, double * b);
 double rnorm(double,double);
 double logdnorm(double,double,double);
 void rperm(vector<int> &, int);
+
+template <typename RandomIt>
+void time_shuffle(RandomIt first, RandomIt last);
 
 #endif
 
