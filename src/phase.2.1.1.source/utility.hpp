@@ -4,9 +4,13 @@
 #ifndef UTILITY_CC_H
 #define UTILITY_CC_H
 
+#include <algorithm>
 #include <string>
 #include <map>
 #include <vector>
+#include <random>
+#include <ctime>
+
 //#include "crand/ranlib.h"
 using namespace::std;
 
@@ -28,8 +32,15 @@ double rnorm(double,double);
 double logdnorm(double,double,double);
 void rperm(vector<int> &, int);
 
+//
+// std::random_shuffle was deprecated, so we reimplement it
+// written here because of template instantiation
+//
 template <typename RandomIt>
-void time_shuffle(RandomIt first, RandomIt last);
+void time_shuffle(RandomIt first, RandomIt last) {
+    std::mt19937 rng(std::time(nullptr));
+    std::shuffle(first, last, rng);
+}
 
 #endif
 

@@ -661,14 +661,6 @@ void rperm(vector<int> & perm,int n)
     }
 }
 
-//
-// std::random_shuffle was deprecated, so we reimplement it here
-//
-template <typename RandomIt>
-void time_shuffle(RandomIt first, RandomIt last) {
-    std::mt19937 rng(std::time(nullptr));
-    std::shuffle(first, last, rng);
-}
 
 // {{{ Log
 /*
